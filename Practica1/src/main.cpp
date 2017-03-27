@@ -7,11 +7,16 @@
 #include <shader.hpp>
 
 #include <SOIL.h>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 
+using namespace glm;
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 800;
 bool WIDEFRAME = false;
 float textOpacity = 0;
+float deg = 0;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//cuando se pulsa una tecla escape cerramos la aplicacion
@@ -22,17 +27,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 		WIDEFRAME = !WIDEFRAME;
 	}
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_UP) {
 		if (textOpacity < 1) {
 			textOpacity += 0.1;
 		}
 		else textOpacity = 1;
 	}
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_DOWN) {
 		if (textOpacity > 0) {
 			textOpacity -= 0.1;
 		}
 		else textOpacity = 0;
+	}
+	if (key == GLFW_KEY_RIGHT) {
+		deg -= 5.f;
+	}
+	if (key == GLFW_KEY_LEFT) {
+		deg += 5.f;
 	}
 }
 
@@ -99,6 +110,13 @@ int main() {
 		0, 1, 2,
 		0, 2, 3
 	};
+
+	/*glm::mat4 trans;
+	glm::vec4 v1(1, 1, 0, 1);
+	cout << v1.x << " " << v1.y << " " << v1.z << endl;
+	trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0));
+	v1 = trans * v1;
+	cout << v1.x << " " << v1.y << " " << v1.z << endl;*/
 
 	// Crear los VBO, VAO y EBO
 	GLuint VBO, VAO, EBO;
@@ -171,10 +189,12 @@ int main() {
 
 	GLint variableShader = glGetUniformLocation(object.Program, "downOffset");
 	GLint textureOpacity = glGetUniformLocation(object.Program, "opacity");
+	GLint transformationMatrix = glGetUniformLocation(object.Program, "trans");
 
 	GLuint vertexShader, fragmentShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
@@ -199,6 +219,21 @@ int main() {
 
 	/////////////----- VERTEX TRANSFORM -----/////////////
 		glUniform1f(variableShader, 0.5 * abs(sin(glfwGetTime())));
+
+	/////////////----- MATRIX MODIFICATION -----/////////////
+	//Transformation matrices
+		glm::mat4 translationMat;
+		glm::mat4 scalationMat;
+		glm::mat4 rotationMat;
+		glm::mat4 transformationMat;
+		scalationMat = glm::scale(scalationMat, glm::vec3(0.5, 0.5, 0));
+		translationMat = glm::translate(translationMat, glm::vec3(0.5f, 0.5f, 0.f));
+		rotationMat = glm::rotate(rotationMat, glm::radians(deg), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		//transformationMat = scalationMat * translationMat;
+		transformationMat = translationMat * rotationMat * scalationMat;
+
+		glUniformMatrix4fv(transformationMatrix, 1, GL_FALSE, value_ptr(transformationMat));
 
 		object.USE();
 

@@ -1,6 +1,6 @@
 ﻿  main.cpp
-d:\documents\practica1\src\main.cpp(27): warning C4305: '+=': truncation from 'double' to 'float'
-d:\documents\practica1\src\main.cpp(33): warning C4305: '-=': truncation from 'double' to 'float'
-d:\documents\practica1\src\main.cpp(201): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-  Proyecto.vcxproj -> D:\Documents\Practica1\Debug\Practica1.exe
-  Proyecto.vcxproj -> D:\Documents\Practica1\Debug\Practica1.pdb (Full PDB)
+d:\documents\practica_informatica_grafica\practica1\src\main.cpp(32): warning C4305: '+=': truncation from 'double' to 'float'
+d:\documents\practica_informatica_grafica\practica1\src\main.cpp(38): warning C4305: '-=': truncation from 'double' to 'float'
+d:\documents\practica_informatica_grafica\practica1\src\main.cpp(221): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+  Proyecto.vcxproj -> D:\Documents\Practica_Informatica_Grafica\Practica1\Debug\Practica1.exe
+  Proyecto.vcxproj -> D:\Documents\Practica_Informatica_Grafica\Practica1\Debug\Practica1.pdb (Full PDB)
