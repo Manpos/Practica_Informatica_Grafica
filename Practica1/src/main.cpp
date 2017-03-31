@@ -17,6 +17,7 @@ const GLint WIDTH = 800, HEIGHT = 800;
 bool WIDEFRAME = false;
 float textOpacity = 0;
 float deg = 0;
+float FOV = 60;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//cuando se pulsa una tecla escape cerramos la aplicacion
@@ -82,8 +83,8 @@ int main() {
 	glfwSetKeyCallback(window, key_callback);
 	//set windows and viewport
 	//TODO
-	int screenWithd, screenHeight;
-	glfwGetFramebufferSize(window, &screenWithd, &screenHeight);
+	int screenWidth, screenHeight;
+	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 	//fondo
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -92,7 +93,8 @@ int main() {
 
 	///////////// ----- SHADERS ----- /////////////
 	//Shader object("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
-	Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
+	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
+	Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 
 
 	// Definir el buffer de vertices
@@ -195,6 +197,7 @@ int main() {
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
+	mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 0.0f, -10.0f);
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))

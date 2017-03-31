@@ -31,6 +31,10 @@
     <None Include="src\textureFragmentShader.frag" />
     <None Include="src\textureVertexShader.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\fragmentShader3D.txt" />
+    <Text Include="src\vertexShader3D.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3FC640D2-EFA2-403C-A406-DF29A85CFD5D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

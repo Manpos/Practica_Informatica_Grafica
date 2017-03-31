@@ -37,4 +37,8 @@
     <None Include="src\textureFragmentShader.frag" />
     <None Include="src\textureVertexShader.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\fragmentShader3D.txt" />
+    <Text Include="src\vertexShader3D.txt" />
+  </ItemGroup>
 </Project>
