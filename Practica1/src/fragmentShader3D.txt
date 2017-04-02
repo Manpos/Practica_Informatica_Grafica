@@ -2,7 +2,6 @@
 
 // Input data
 
-in vec3 vertexColor;
 in vec2 textMap;
 
 // Ouput data

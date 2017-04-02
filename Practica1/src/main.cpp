@@ -18,6 +18,7 @@ bool WIDEFRAME = false;
 float textOpacity = 0;
 float deg = 0;
 float FOV = 60;
+bool view2D = false;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//cuando se pulsa una tecla escape cerramos la aplicacion
@@ -98,7 +99,6 @@ int main() {
 
 
 	// Definir el buffer de vertices
-
 	GLfloat VertexBufferObject[] = {
 		0.5f,  0.5f, 0.0f,		0.f, 1.f, 1.f,		1.0f, 0.0f, // Top Right
 		0.5f, -0.5f, 0.0f,		0.f, 1.f, 0.f,		1.0f, 1.0f, // Bottom Right
@@ -107,18 +107,56 @@ int main() {
 
 	};
 
+	//Cube vertices
+	GLfloat VertexBufferCube[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
 	// Definir el EBO
 	GLuint index[]{
 		0, 1, 2,
 		0, 2, 3
 	};
-
-	/*glm::mat4 trans;
-	glm::vec4 v1(1, 1, 0, 1);
-	cout << v1.x << " " << v1.y << " " << v1.z << endl;
-	trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0));
-	v1 = trans * v1;
-	cout << v1.x << " " << v1.y << " " << v1.z << endl;*/
 
 	// Crear los VBO, VAO y EBO
 	GLuint VBO, VAO, EBO;
@@ -128,8 +166,6 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	//Establecer el objeto
-	//Declarar el VBO y el EBO
 	GLuint texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -169,47 +205,65 @@ int main() {
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferObject), VertexBufferObject, GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferObject), VertexBufferObject, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
 
 	//Establecer las propiedades de los vertices
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	//2D Texture 
+
+	/*glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*) (3 * sizeof(GLfloat)));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*) (6 * sizeof(GLfloat)));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(2);*/
+
+	//3D Texture
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*) (3 * sizeof(GLfloat)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	//liberar el buffer
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//liberar el buffer de vertices
 
+	//Movement uniforms
 	GLint variableShader = glGetUniformLocation(object.Program, "downOffset");
+
+	//Texture uniforms
 	GLint textureOpacity = glGetUniformLocation(object.Program, "opacity");
 	GLint transformationMatrix = glGetUniformLocation(object.Program, "trans");
+
+	//Going 3D
+	GLint view3D = glGetUniformLocation(object.Program, "view");
+	GLint projection = glGetUniformLocation(object.Program, "proj");
+	GLint model3D = glGetUniformLocation(object.Program, "model");
 
 	GLuint vertexShader, fragmentShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-	mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 0.0f, -10.0f);
+	//ENABLE Z-BUFFER	
+	glEnable(GL_DEPTH_TEST);
 
-	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwSetKeyCallback(window, key_callback);
 
 		//Establecer el color de fondo
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(1.0, 1.0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.0, 0.0, 0.0, 1.0);
 
-	/////////////----- TEXTURES -----/////////////
+		/////////////----- TEXTURES -----/////////////
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glUniform1i(glGetUniformLocation(object.Program, "texture1"), 0);
@@ -220,37 +274,52 @@ int main() {
 		
 		glUniform1f(textureOpacity, textOpacity);
 
-	/////////////----- VERTEX TRANSFORM -----/////////////
+		/////////////----- VERTEX TRANSFORM -----/////////////
 		glUniform1f(variableShader, 0.5 * abs(sin(glfwGetTime())));
 
-	/////////////----- MATRIX MODIFICATION -----/////////////
-	//Transformation matrices
+		/////////////----- MATRIX MODIFICATION -----/////////////
+		//Transformation matrices
 		glm::mat4 translationMat;
 		glm::mat4 scalationMat;
 		glm::mat4 rotationMat;
 		glm::mat4 transformationMat;
+
 		scalationMat = glm::scale(scalationMat, glm::vec3(0.5, 0.5, 0));
 		translationMat = glm::translate(translationMat, glm::vec3(0.5f, 0.5f, 0.f));
 		rotationMat = glm::rotate(rotationMat, glm::radians(deg), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		//transformationMat = scalationMat * translationMat;
 		transformationMat = translationMat * rotationMat * scalationMat;
 
 		glUniformMatrix4fv(transformationMatrix, 1, GL_FALSE, value_ptr(transformationMat));
+
+		////////////----- CAMERA POSITIONING -----//////////////
+		mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 10.0f);
+		mat4 view = lookAt(vec3(1.2f,1.2f,1.2f), vec3(0.0f,0.0f,0.0f), vec3(0.0f,0.0f,1.0f));
+		mat4 model;
+
+		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
+		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
+		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 
 		object.USE();
 
 		glBindVertexArray(VAO);
 
-		if (WIDEFRAME) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		if (view2D) {
+
+			if (WIDEFRAME) {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			}
+
+			else {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			}
 		}
 
-		//pintar con triangulos
 		else {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		glBindVertexArray(0);
@@ -263,6 +332,7 @@ int main() {
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	exit(EXIT_SUCCESS);
 }
