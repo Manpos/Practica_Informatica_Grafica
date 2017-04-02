@@ -11,8 +11,6 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-//HI
-
 using namespace glm;
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 800;
