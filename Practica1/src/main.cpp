@@ -24,6 +24,13 @@ int degX = 0, degY = 0;
 float FOV = 60;
 bool view2D = false;
 
+//Camera vectors
+vec3 cameraPos(0.f, 0.f, 3.f);
+vec3 direction(0.f,0.f,0.f);
+
+//Delta Time
+float deltaTime = 0, actualTime = 0, lastFrame = 0;
+
 #pragma endregion
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -63,9 +70,47 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		degX += 5;
 		degX = degX % 360;
 	}
+	if (key == GLFW_KEY_W) {
+		cameraPos.z -= 0.1;
+		direction.z -= 0.1;
+	}
+	if (key == GLFW_KEY_S) {
+		cameraPos.z += 0.1;
+		direction.z += 0.1;
+	}
+	if (key == GLFW_KEY_D) {
+		cameraPos.x += 0.1;
+		direction.x += 0.1;
+	}
+	if (key == GLFW_KEY_A) {
+		cameraPos.x -= 0.1;
+		direction.x -= 0.1;
+	}
+}
+
+mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
+	vec3 direction = normalize(viewDirection - position);
+	vec3 rightVector = normalize(cross(direction, worldUp));
+	vec3 upVector = cross(rightVector, direction);
+
+	mat4 cameraVectors(
+		rightVector.x, upVector.x, -direction.x, 0.f,
+		rightVector.y, upVector.y, -direction.y, 0.f,
+		rightVector.z, upVector.z, -direction.z, 0.f,
+		0.f, 0.f, 0.f, 1.f);	
+
+	mat4 cameraPosition (
+		1.f, 0.f, 0.f, 0, 
+		0.f, 1.f, 0.f, 0, 
+		0.f, 0.f, 1.f, 0, 
+		-position.x, -position.y, -position.z, 1.f);
+
+	return cameraVectors * cameraPosition;
 }
 
 int main() {
+
+#pragma region OpenGL starters
 
 	GLFWwindow* window;
 	if (!glfwInit())
@@ -288,12 +333,22 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	//CAMERA POSITIONING
-	mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 10.0f);
-	mat4 view = lookAt(vec3(1.2f, 1.2f, 1.2f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 0.3f));
+	mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
+	//mat4 view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+	//mat4 view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+
+#pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
 		//Key used check
 		glfwSetKeyCallback(window, key_callback);
+
+		//DELTA TIME
+		actualTime = glfwGetTime();
+		deltaTime = actualTime - lastFrame;
+		lastFrame = actualTime;
+
+		cout << deltaTime << endl;
 
 		//Background clear
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -359,6 +414,15 @@ int main() {
 
 #endif
 
+		//CAMERA MOVEMENT
+		GLfloat rad = 8.0f;
+		GLfloat X = sin(glfwGetTime()) * rad;
+		GLfloat Z = cos(glfwGetTime()) * rad;
+		mat4 view;
+		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
+		view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
+		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+		//view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 
 #if(true)
 
@@ -372,7 +436,7 @@ int main() {
 				rotationMat = glm::rotate(rotationMat, glm::radians(float(degX)), glm::vec3(1.0f, 0.0f, 0.0f));
 				rotationMat = glm::rotate(rotationMat, glm::radians(float(degY)), glm::vec3(0.0f, 1.0f, 0.0f));
 
-				model = rotationMat * translate(model, CubesPositionBuffer[i]);
+				model = translate(model, CubesPositionBuffer[i]) * rotationMat;
 				glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 			}
 			else {
