@@ -27,6 +27,7 @@ bool view2D = false;
 //Camera vectors
 vec3 cameraPos(0.f, 0.f, 3.f);
 vec3 direction(0.f,0.f,0.f);
+vec3 cameraVelocity(10.f, 10.f, 10.f);
 
 //Delta Time
 float deltaTime = 0, actualTime = 0, lastFrame = 0;
@@ -71,20 +72,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		degX = degX % 360;
 	}
 	if (key == GLFW_KEY_W) {
-		cameraPos.z -= 0.1;
-		direction.z -= 0.1;
+		cameraPos.z -= cameraVelocity.z * deltaTime;
+		direction.z -= cameraVelocity.z * deltaTime;
 	}
 	if (key == GLFW_KEY_S) {
-		cameraPos.z += 0.1;
-		direction.z += 0.1;
+		cameraPos.z += cameraVelocity.z * deltaTime;
+		direction.z += cameraVelocity.z * deltaTime;
 	}
 	if (key == GLFW_KEY_D) {
-		cameraPos.x += 0.1;
-		direction.x += 0.1;
+		cameraPos.x += cameraVelocity.x * deltaTime;
+		direction.x += cameraVelocity.x * deltaTime;
 	}
 	if (key == GLFW_KEY_A) {
-		cameraPos.x -= 0.1;
-		direction.x -= 0.1;
+		cameraPos.x -= cameraVelocity.x * deltaTime;
+		direction.x -= cameraVelocity.x * deltaTime;
 	}
 }
 
@@ -106,6 +107,10 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 		-position.x, -position.y, -position.z, 1.f);
 
 	return cameraVectors * cameraPosition;
+}
+
+void Movement(GLFWwindow* window) {
+	glfwGetKey(window, GLFW_KEY_W);
 }
 
 int main() {
