@@ -25,14 +25,15 @@ float FOV = 60;
 bool view2D = false;
 
 //Camera vectors
-vec3 cameraPos(0.f, 0.f, 3.f);
+vec3 cameraPos(0.f, 0.f, 0.f);
 vec3 direction(0.f,0.f,0.f);
 
 //Camera variables
 double posX, posY;
-float camYaw = 10, camPitch = 10;
+float camYaw = 0, camPitch = 0;
 vec2 offset;
 vec2 mousePosition, lastMousePosition;
+float sensibility = 0.04;
 
 float cameraVelocity = 10.f;
 
@@ -112,34 +113,34 @@ void DoMovement(GLFWwindow* window) {
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		cameraPos.z -= cameraVelocity * deltaTime;
-		direction.z -= cameraVelocity * deltaTime;
+		//direction.z -= cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		cameraPos.z += cameraVelocity * deltaTime;
-		direction.z += cameraVelocity * deltaTime;
+		//direction.z += cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		cameraPos.x += cameraVelocity * deltaTime;
-		direction.x += cameraVelocity * deltaTime;
+		//direction.x += cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		cameraPos.x -= cameraVelocity * deltaTime;
-		direction.x -= cameraVelocity * deltaTime;
+		//direction.x -= cameraVelocity * deltaTime;
 	}
 }
 
 mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
-	vec3 direction = normalize(viewDirection - position);
-	vec3 rightVector = normalize(cross(direction, worldUp));
-	vec3 upVector = cross(rightVector, direction);
+	vec3 cameraDirection = normalize(viewDirection - position);
+	vec3 rightVector = normalize(cross(cameraDirection, worldUp));
+	vec3 upVector = cross(rightVector, cameraDirection);
 
 	mat4 cameraVectors(
-		rightVector.x, upVector.x, -direction.x, 0.f,
-		rightVector.y, upVector.y, -direction.y, 0.f,
-		rightVector.z, upVector.z, -direction.z, 0.f,
+		rightVector.x, upVector.x, -cameraDirection.x, 0.f,
+		rightVector.y, upVector.y, -cameraDirection.y, 0.f,
+		rightVector.z, upVector.z, -cameraDirection.z, 0.f,
 		0.f, 0.f, 0.f, 1.f);	
 
 	mat4 cameraPosition (
@@ -151,14 +152,26 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 	return cameraVectors * cameraPosition;
 }
 
-vec3 cameraRotation() {
-	vec3 direction;
+vec3 cameraRotation(float camyaw, float campitch, vec3 cameraPosition) {
+	vec3 result;
 
-	direction.x = cos(camYaw) * sin(camPitch);
-	direction.y = cos(camPitch);
-	direction.z = sin(camYaw) * sin(camPitch);
+	/*direction.x = clamp(cos(radians(camyaw)) * sin(radians(campitch)), 0.f, (float)WIDTH);
+	direction.y = clamp(cos(radians(campitch)), 0.f, (float)HEIGHT);
+	direction.z = sin(radians(camyaw)) * sin(radians(campitch));*/
 
-	return direction;
+	//result.x = cos(radians(clamp(camyaw, -89.f, 89.f)));
+	result.x = cos(radians(mod(camyaw, 360.f)) * sin(radians(mod(camyaw, 360.f))));
+	result.y = -sin(radians(clamp(campitch, -89.f, 89.f)));
+	result.z = sin(radians(mod(camyaw, 360.f)))* cos(radians(clamp(campitch, -89.f, 89.f)));
+	//result.z = cos(radians(clamp(campitch, -89.f, 89.f)));
+	//result.z = sin(radians(clamp(camyaw, -89.f, 89.f)));
+
+	//cout << result.y << endl;
+	//cout << result.z << endl;
+
+	//direction.z = sin(radians(mod(camyaw, 360.f))) * cos(radians(clamp(campitch, -89.f, 89.f)));
+
+	return result;
 }
 
 int main() {
@@ -391,7 +404,7 @@ int main() {
 	//mat4 view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 
 	//INITIAL CAMERA ROTATION
-	lastMousePosition = mousePosition;
+	lastMousePosition = mousePosition = vec2(WIDTH, HEIGHT/2);
 
 
 #pragma endregion
@@ -476,24 +489,36 @@ int main() {
 		//GLfloat rad = 8.0f;
 		//GLfloat X = sin(glfwGetTime()) * rad;
 		//GLfloat Z = cos(glfwGetTime()) * rad;
+
 		mat4 view;
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);		
 		glfwSetCursorPosCallback(window, cursor_position_callback);
 		glfwGetCursorPos(window, &posX, &posY);
 
-		mousePosition.x = (posX);
-		mousePosition.y = (posY);
+		mousePosition.x = posX;
+		mousePosition.y = posY;
 
 		offset = mousePosition - lastMousePosition;
-		lastMousePosition = mousePosition;
+		offset *= sensibility;
 
+		/*if (offset.x != 0 || offset.y != 0) {
+			cout << "Mouse position: " << mousePosition.x << " | " << mousePosition.y << " ||| Last mouse position: " << lastMousePosition.x << " | " << lastMousePosition.y << endl;
+			cout << offset.x << " | " << offset.y << endl;
+		}*/
+
+		lastMousePosition = mousePosition;
+				
 		camYaw += offset.x;
 		camPitch += offset.y;
 
-		direction = cameraRotation()/vec3(100);
+		//cout << clamp(camPitch, -89.f, 89.f) << endl;
+		direction = cameraPos + vec3(0, 0, -1);
+		direction = length(direction) * normalize(cameraRotation(camYaw, camPitch, cameraPos));
 
-		cout << mousePosition.x << " | " << mousePosition.y << endl;
+		cout << direction.y << " | " << direction.z << endl;
+		cout << cameraPos.y << " | " << cameraPos.z << endl;
+
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
