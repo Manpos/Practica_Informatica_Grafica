@@ -27,7 +27,14 @@ bool view2D = false;
 //Camera vectors
 vec3 cameraPos(0.f, 0.f, 3.f);
 vec3 direction(0.f,0.f,0.f);
-vec3 cameraVelocity(10.f, 10.f, 10.f);
+
+//Camera variables
+double posX, posY;
+float camYaw = 10, camPitch = 10;
+vec2 offset;
+vec2 mousePosition, lastMousePosition;
+
+float cameraVelocity = 10.f;
 
 //Delta Time
 float deltaTime = 0, actualTime = 0, lastFrame = 0;
@@ -71,21 +78,56 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		degX += 5;
 		degX = degX % 360;
 	}
-	if (key == GLFW_KEY_W) {
-		cameraPos.z -= cameraVelocity.z * deltaTime;
-		direction.z -= cameraVelocity.z * deltaTime;
+	/*if (key == GLFW_KEY_W) {
+		cameraPos.z -= cameraVelocity * deltaTime;
+		direction.z -= cameraVelocity * deltaTime;
 	}
 	if (key == GLFW_KEY_S) {
-		cameraPos.z += cameraVelocity.z * deltaTime;
-		direction.z += cameraVelocity.z * deltaTime;
+		cameraPos.z += cameraVelocity * deltaTime;
+		direction.z += cameraVelocity * deltaTime;
 	}
 	if (key == GLFW_KEY_D) {
-		cameraPos.x += cameraVelocity.x * deltaTime;
-		direction.x += cameraVelocity.x * deltaTime;
+		cameraPos.x += cameraVelocity * deltaTime;
+		direction.x += cameraVelocity * deltaTime;
 	}
 	if (key == GLFW_KEY_A) {
-		cameraPos.x -= cameraVelocity.x * deltaTime;
-		direction.x -= cameraVelocity.x * deltaTime;
+		cameraPos.x -= cameraVelocity * deltaTime;
+		direction.x -= cameraVelocity * deltaTime;
+	}*/
+}
+
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+}
+
+//CAMERA MOVEMENT
+void DoMovement(GLFWwindow* window) {
+
+	//MOUSE INPUT
+	glfwSetCursorPosCallback(window, cursor_position_callback);
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cameraPos.z -= cameraVelocity * deltaTime;
+		direction.z -= cameraVelocity * deltaTime;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameraPos.z += cameraVelocity * deltaTime;
+		direction.z += cameraVelocity * deltaTime;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameraPos.x += cameraVelocity * deltaTime;
+		direction.x += cameraVelocity * deltaTime;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameraPos.x -= cameraVelocity * deltaTime;
+		direction.x -= cameraVelocity * deltaTime;
 	}
 }
 
@@ -109,8 +151,14 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 	return cameraVectors * cameraPosition;
 }
 
-void Movement(GLFWwindow* window) {
-	glfwGetKey(window, GLFW_KEY_W);
+vec3 cameraRotation() {
+	vec3 direction;
+
+	direction.x = cos(camYaw) * sin(camPitch);
+	direction.y = cos(camPitch);
+	direction.z = sin(camYaw) * sin(camPitch);
+
+	return direction;
 }
 
 int main() {
@@ -342,18 +390,23 @@ int main() {
 	//mat4 view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 	//mat4 view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 
+	//INITIAL CAMERA ROTATION
+	lastMousePosition = mousePosition;
+
+
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
 		//Key used check
 		glfwSetKeyCallback(window, key_callback);
 
+		DoMovement(window);
+
 		//DELTA TIME
 		actualTime = glfwGetTime();
 		deltaTime = actualTime - lastFrame;
-		lastFrame = actualTime;
 
-		cout << deltaTime << endl;
+		//cout << deltaTime << endl;
 
 		//Background clear
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -420,14 +473,31 @@ int main() {
 #endif
 
 		//CAMERA MOVEMENT
-		GLfloat rad = 8.0f;
-		GLfloat X = sin(glfwGetTime()) * rad;
-		GLfloat Z = cos(glfwGetTime()) * rad;
+		//GLfloat rad = 8.0f;
+		//GLfloat X = sin(glfwGetTime()) * rad;
+		//GLfloat Z = cos(glfwGetTime()) * rad;
 		mat4 view;
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);		
+		glfwSetCursorPosCallback(window, cursor_position_callback);
+		glfwGetCursorPos(window, &posX, &posY);
+
+		mousePosition.x = (posX);
+		mousePosition.y = (posY);
+
+		offset = mousePosition - lastMousePosition;
+		lastMousePosition = mousePosition;
+
+		camYaw += offset.x;
+		camPitch += offset.y;
+
+		direction = cameraRotation()/vec3(100);
+
+		cout << mousePosition.x << " | " << mousePosition.y << endl;
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
-		view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
+		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-		//view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+		view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 
 #if(true)
 
@@ -461,6 +531,9 @@ int main() {
 		
 
 #endif
+
+		//UPDATE DELTA TIME
+		lastFrame = actualTime;
 
 		object.USE();
 
