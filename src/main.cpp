@@ -26,17 +26,17 @@ bool view2D = false;
 
 //Camera vectors
 vec3 cameraPos(0.f, 0.f, 3.f);
-vec3 direction(0.f,0.f,0.f);
+vec3 cameraFront(0.f,0.f,-1.f);
+vec3 cameraUp(0.0, 1.0, 0.0);
 vec3 upVector;
 vec3 rightVector;
 vec3 cameraDirection;
 
 //Camera variables
-double posX, posY;
 float camYaw = 0, camPitch = 0;
-vec2 offset;
-vec2 mousePosition, lastMousePosition;
-float sensibility = 0.04;
+vec2 lastMousePosition = vec2(WIDTH/2, HEIGHT/2);
+bool firstMouse = true;
+
 
 float cameraVelocity = 10.f;
 
@@ -85,48 +85,83 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
-static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
+	if (firstMouse)
+	{
+		lastMousePosition.x = xpos;
+		lastMousePosition.y = ypos;
+		firstMouse = false;
+	}
+
+	cout << xpos << endl;
+
+	vec2 offset;
+	vec3 result;
+	float sensitivity = 0.04;
+
+	offset.x = xpos - lastMousePosition.x;
+	offset.y = lastMousePosition.y - ypos;
+
+	lastMousePosition.x = xpos;
+	lastMousePosition.y = ypos;
+
+	offset *= sensitivity;
+
+	camYaw += offset.x;
+	camPitch += offset.y;
+
+	camPitch = clamp(camPitch, -89.f, 89.f);
+	camYaw = mod(camYaw, 360.f);
+
+	result.x = cos(radians(camPitch)) * cos(radians(camYaw));
+	result.y = sin(radians(camPitch));
+	result.z = cos(radians(camPitch))* sin(radians(camYaw));
+
+	cameraFront = normalize(result);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	if (FOV >= 1.0f && FOV <= 100)
+		FOV -= yoffset;
+	if (FOV <= 1.0f)
+		FOV = 1.0f;
+	if (FOV >= 100)
+		FOV = 100;
 }
 
 //CAMERA MOVEMENT
 void DoMovement(GLFWwindow* window) {
-
-	//MOUSE INPUT
-	glfwSetCursorPosCallback(window, cursor_position_callback);
 	
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		//cameraPos.z -= cameraVelocity * deltaTime;
-		cameraPos += cameraDirection * cameraVelocity * deltaTime;
+		cameraPos += cameraFront * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		//cameraPos.z += cameraVelocity * deltaTime;
-		cameraPos -= cameraDirection * cameraVelocity * deltaTime;
+		cameraPos -= cameraFront * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameraPos += rightVector * cameraVelocity * deltaTime;
+		cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameraPos -= rightVector * cameraVelocity * deltaTime;
+		cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraVelocity * deltaTime;
 	}
 }
 
 mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
-	cameraDirection = normalize(viewDirection - position);
-	rightVector = normalize(cross(cameraDirection, worldUp));
-	upVector = cross(rightVector, cameraDirection);
+	cameraDirection = normalize(position - viewDirection);
+	rightVector = normalize(cross(worldUp, cameraDirection));
+	upVector = cross(cameraDirection, rightVector);
 
 	mat4 cameraVectors(
-		rightVector.x, upVector.x, -cameraDirection.x, 0.f,
-		rightVector.y, upVector.y, -cameraDirection.y, 0.f,
-		rightVector.z, upVector.z, -cameraDirection.z, 0.f,
+		rightVector.x, rightVector.y, rightVector.z, 0.f,
+		upVector.x, upVector.y, upVector.z, 0.f,
+		cameraDirection.x, cameraDirection.y, cameraDirection.z, 0.f,
 		0.f, 0.f, 0.f, 1.f);	
 
 	mat4 cameraPosition (
@@ -136,19 +171,6 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 		-position.x, -position.y, -position.z, 1.f);
 
 	return cameraVectors * cameraPosition;
-}
-
-vec3 cameraRotation(float camyaw, float campitch, vec3 cameraPosition) {
-	vec3 result;
-
-	float YAW = mod(camyaw, 360.f);
-	float PITCH = clamp(campitch, -89.f, 89.f);
-
-	result.x = cos(radians(YAW)) * cos(radians(PITCH));
-	result.y = sin(radians(PITCH));
-	result.z = cos(radians(YAW))* sin(radians(PITCH));
-
-	return result;
 }
 
 int main() {
@@ -381,7 +403,8 @@ int main() {
 	//mat4 view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 
 	//INITIAL CAMERA ROTATION
-	lastMousePosition = mousePosition = vec2(WIDTH, HEIGHT/2);
+	//lastMousePosition = vec2(WIDTH, HEIGHT/2);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
 #pragma endregion
@@ -390,6 +413,11 @@ int main() {
 		//Key used check
 		glfwSetKeyCallback(window, key_callback);
 
+		//MOUSE INPUT
+		glfwSetCursorPosCallback(window, mouse_callback);
+		glfwSetScrollCallback(window, scroll_callback);
+
+		proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
 		DoMovement(window);
 
 		//DELTA TIME
@@ -468,37 +496,11 @@ int main() {
 		//GLfloat Z = cos(glfwGetTime()) * rad;
 
 		mat4 view;
-
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);		
-		glfwSetCursorPosCallback(window, cursor_position_callback);
-		glfwGetCursorPos(window, &posX, &posY);
-
-		mousePosition.x = posX;
-		mousePosition.y = posY;
-
-		offset = mousePosition - lastMousePosition;
-		offset *= sensibility;
-
-		/*if (offset.x != 0 || offset.y != 0) {
-			cout << "Mouse position: " << mousePosition.x << " | " << mousePosition.y << " ||| Last mouse position: " << lastMousePosition.x << " | " << lastMousePosition.y << endl;
-			cout << offset.x << " | " << offset.y << endl;
-		}*/
-
-		lastMousePosition = mousePosition;
-				
-		camYaw += offset.x;
-		camPitch += offset.y;
 		
-		//direction = cameraPos + vec3(0, 0, -1);
-		//direction = length(direction) * (normalize(cameraPos) + normalize(cameraRotation(camYaw, camPitch, cameraPos)));
-		direction =  length(direction) * normalize(cameraRotation(camYaw, camPitch, cameraPos));
-		//cameraDirection = normalize(direction - cameraPos);
-
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-		view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-		direction = cameraDirection;
+		view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 #if(true)
 
