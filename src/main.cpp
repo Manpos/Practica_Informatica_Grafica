@@ -25,8 +25,11 @@ float FOV = 60;
 bool view2D = false;
 
 //Camera vectors
-vec3 cameraPos(0.f, 0.f, 0.f);
+vec3 cameraPos(0.f, 0.f, 3.f);
 vec3 direction(0.f,0.f,0.f);
+vec3 upVector;
+vec3 rightVector;
+vec3 cameraDirection;
 
 //Camera variables
 double posX, posY;
@@ -79,22 +82,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		degX += 5;
 		degX = degX % 360;
 	}
-	/*if (key == GLFW_KEY_W) {
-		cameraPos.z -= cameraVelocity * deltaTime;
-		direction.z -= cameraVelocity * deltaTime;
-	}
-	if (key == GLFW_KEY_S) {
-		cameraPos.z += cameraVelocity * deltaTime;
-		direction.z += cameraVelocity * deltaTime;
-	}
-	if (key == GLFW_KEY_D) {
-		cameraPos.x += cameraVelocity * deltaTime;
-		direction.x += cameraVelocity * deltaTime;
-	}
-	if (key == GLFW_KEY_A) {
-		cameraPos.x -= cameraVelocity * deltaTime;
-		direction.x -= cameraVelocity * deltaTime;
-	}*/
+
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -110,32 +98,30 @@ void DoMovement(GLFWwindow* window) {
 
 	//MOUSE INPUT
 	glfwSetCursorPosCallback(window, cursor_position_callback);
-
+	
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		cameraPos.z -= cameraVelocity * deltaTime;
-		//direction.z -= cameraVelocity * deltaTime;
+		//cameraPos.z -= cameraVelocity * deltaTime;
+		cameraPos += cameraDirection * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		cameraPos.z += cameraVelocity * deltaTime;
-		//direction.z += cameraVelocity * deltaTime;
+		//cameraPos.z += cameraVelocity * deltaTime;
+		cameraPos -= cameraDirection * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameraPos.x += cameraVelocity * deltaTime;
-		//direction.x += cameraVelocity * deltaTime;
+		cameraPos += rightVector * cameraVelocity * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameraPos.x -= cameraVelocity * deltaTime;
-		//direction.x -= cameraVelocity * deltaTime;
+		cameraPos -= rightVector * cameraVelocity * deltaTime;
 	}
 }
 
 mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
-	vec3 cameraDirection = normalize(viewDirection - position);
-	vec3 rightVector = normalize(cross(cameraDirection, worldUp));
-	vec3 upVector = cross(rightVector, cameraDirection);
+	cameraDirection = normalize(viewDirection - position);
+	rightVector = normalize(cross(cameraDirection, worldUp));
+	upVector = cross(rightVector, cameraDirection);
 
 	mat4 cameraVectors(
 		rightVector.x, upVector.x, -cameraDirection.x, 0.f,
@@ -155,21 +141,12 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 vec3 cameraRotation(float camyaw, float campitch, vec3 cameraPosition) {
 	vec3 result;
 
-	/*direction.x = clamp(cos(radians(camyaw)) * sin(radians(campitch)), 0.f, (float)WIDTH);
-	direction.y = clamp(cos(radians(campitch)), 0.f, (float)HEIGHT);
-	direction.z = sin(radians(camyaw)) * sin(radians(campitch));*/
+	float YAW = mod(camyaw, 360.f);
+	float PITCH = clamp(campitch, -89.f, 89.f);
 
-	//result.x = cos(radians(clamp(camyaw, -89.f, 89.f)));
-	result.x = cos(radians(mod(camyaw, 360.f)) * sin(radians(mod(camyaw, 360.f))));
-	result.y = -sin(radians(clamp(campitch, -89.f, 89.f)));
-	result.z = sin(radians(mod(camyaw, 360.f)))* cos(radians(clamp(campitch, -89.f, 89.f)));
-	//result.z = cos(radians(clamp(campitch, -89.f, 89.f)));
-	//result.z = sin(radians(clamp(camyaw, -89.f, 89.f)));
-
-	//cout << result.y << endl;
-	//cout << result.z << endl;
-
-	//direction.z = sin(radians(mod(camyaw, 360.f))) * cos(radians(clamp(campitch, -89.f, 89.f)));
+	result.x = cos(radians(YAW)) * cos(radians(PITCH));
+	result.y = sin(radians(PITCH));
+	result.z = cos(radians(YAW))* sin(radians(PITCH));
 
 	return result;
 }
@@ -492,7 +469,7 @@ int main() {
 
 		mat4 view;
 
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);		
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);		
 		glfwSetCursorPosCallback(window, cursor_position_callback);
 		glfwGetCursorPos(window, &posX, &posY);
 
@@ -511,18 +488,17 @@ int main() {
 				
 		camYaw += offset.x;
 		camPitch += offset.y;
-
-		//cout << clamp(camPitch, -89.f, 89.f) << endl;
-		direction = cameraPos + vec3(0, 0, -1);
-		direction = length(direction) * normalize(cameraRotation(camYaw, camPitch, cameraPos));
-
-		cout << direction.y << " | " << direction.z << endl;
-		cout << cameraPos.y << " | " << cameraPos.z << endl;
+		
+		//direction = cameraPos + vec3(0, 0, -1);
+		//direction = length(direction) * (normalize(cameraPos) + normalize(cameraRotation(camYaw, camPitch, cameraPos)));
+		direction =  length(direction) * normalize(cameraRotation(camYaw, camPitch, cameraPos));
+		//cameraDirection = normalize(direction - cameraPos);
 
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 		view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+		direction = cameraDirection;
 
 #if(true)
 
