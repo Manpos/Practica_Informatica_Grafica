@@ -20,8 +20,8 @@ const GLint WIDTH = 800, HEIGHT = 800;
 bool WIDEFRAME = false;
 float textOpacity = 0;
 float deg = 0;
-int degX = 0, degY = 0;
 float FOV = 60;
+int degX = 0, degY = 0;
 bool view2D = false;
 
 //Camera vectors
@@ -33,11 +33,10 @@ vec3 rightVector;
 vec3 cameraDirection;
 
 //Camera variables
+//float FOV = 60;
 float camYaw = 0, camPitch = 0;
 vec2 lastMousePosition = vec2(WIDTH/2, HEIGHT/2);
 bool firstMouse = true;
-
-
 float cameraVelocity = 10.f;
 
 //Delta Time
@@ -159,9 +158,9 @@ mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
 	upVector = cross(cameraDirection, rightVector);
 
 	mat4 cameraVectors(
-		rightVector.x, rightVector.y, rightVector.z, 0.f,
-		upVector.x, upVector.y, upVector.z, 0.f,
-		cameraDirection.x, cameraDirection.y, cameraDirection.z, 0.f,
+		rightVector.x, upVector.x, cameraDirection.x, 0.f,
+		rightVector.y, upVector.y, cameraDirection.y, 0.f,
+		rightVector.z, upVector.z, cameraDirection.z, 0.f,
 		0.f, 0.f, 0.f, 1.f);	
 
 	mat4 cameraPosition (
@@ -500,7 +499,7 @@ int main() {
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-		view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		view = LookAtMatrix(cameraPos, cameraPos + cameraFront, cameraUp);
 
 #if(true)
 
