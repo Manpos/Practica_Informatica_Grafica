@@ -10,24 +10,20 @@ private:
 	vec3 cameraPos;
 	vec3 cameraFront;
 	vec3 cameraUp;
-	vec3 upVector;
-	vec3 rightVector;
-	vec3 cameraDirection;
 
 	//Camera variables
-	float FOV = 60;
-	float camYaw = 0, camPitch = 0;
-	//vec2 lastMousePosition = vec2(WIDTH / 2, HEIGHT / 2);
-	bool firstMouse = true;
-	float cameraVelocity = 10.f;
+	GLfloat FOV = 60;
+	GLfloat camYaw = 0, camPitch = 0;
+	vec2 lastMousePosition = vec2(800 / 2, 800 / 2);
+	GLboolean firstMouse = true;
+	GLfloat cameraVelocity = 10.f;
+	GLfloat sensitivity = 0.04;
 
 	//Delta Time
-	float deltaTime = 0, actualTime = 0, lastFrame = 0;
+	GLfloat deltaTime = 0, actualTime = 0, lastFrame = 0;
 
 public:
-	Camera();
-	~Camera();
-	void Update();
+	Camera(vec3 position, vec3 direction, GLfloat sensitivity, GLfloat fov);
 	void DoMovement(GLFWwindow* window);
 	void MouseMove(GLFWwindow* window, double xpos, double ypos);
 	void MouseScroll(GLFWwindow* window, double xoffset, double yoffset);

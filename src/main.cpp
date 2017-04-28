@@ -11,6 +11,8 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+#include "Camera.h"
+
 using namespace glm;
 using namespace std;
 
@@ -28,16 +30,17 @@ bool view2D = false;
 vec3 cameraPos(0.f, 0.f, 3.f);
 vec3 cameraFront(0.f,0.f,-1.f);
 vec3 cameraUp(0.0, 1.0, 0.0);
-vec3 upVector;
-vec3 rightVector;
-vec3 cameraDirection;
 
 //Camera variables
 //float FOV = 60;
-float camYaw = 0, camPitch = 0;
-vec2 lastMousePosition = vec2(WIDTH/2, HEIGHT/2);
-bool firstMouse = true;
+//float camYaw = 0, camPitch = 0;
+//vec2 lastMousePosition = vec2(WIDTH/2, HEIGHT/2);
+//bool firstMouse = true;
 float cameraVelocity = 10.f;
+float sensitivity = 0.04;
+
+//Camera object definition
+Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
 
 //Delta Time
 float deltaTime = 0, actualTime = 0, lastFrame = 0;
@@ -84,92 +87,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
+
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-
-	if (firstMouse)
-	{
-		lastMousePosition.x = xpos;
-		lastMousePosition.y = ypos;
-		firstMouse = false;
-	}
-
-	cout << xpos << endl;
-
-	vec2 offset;
-	vec3 result;
-	float sensitivity = 0.04;
-
-	offset.x = xpos - lastMousePosition.x;
-	offset.y = lastMousePosition.y - ypos;
-
-	lastMousePosition.x = xpos;
-	lastMousePosition.y = ypos;
-
-	offset *= sensitivity;
-
-	camYaw += offset.x;
-	camPitch += offset.y;
-
-	camPitch = clamp(camPitch, -89.f, 89.f);
-	camYaw = mod(camYaw, 360.f);
-
-	result.x = cos(radians(camPitch)) * cos(radians(camYaw));
-	result.y = sin(radians(camPitch));
-	result.z = cos(radians(camPitch))* sin(radians(camYaw));
-
-	cameraFront = normalize(result);
+	mainCam.MouseMove(window, xpos, ypos);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	if (FOV >= 1.0f && FOV <= 100)
-		FOV -= yoffset;
-	if (FOV <= 1.0f)
-		FOV = 1.0f;
-	if (FOV >= 100)
-		FOV = 100;
-}
-
-//CAMERA MOVEMENT
-void DoMovement(GLFWwindow* window) {
-	
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		//cameraPos.z -= cameraVelocity * deltaTime;
-		cameraPos += cameraFront * cameraVelocity * deltaTime;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		//cameraPos.z += cameraVelocity * deltaTime;
-		cameraPos -= cameraFront * cameraVelocity * deltaTime;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraVelocity * deltaTime;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraVelocity * deltaTime;
-	}
-}
-
-mat4 LookAtMatrix(vec3 position, vec3 viewDirection, vec3 worldUp) {
-	cameraDirection = normalize(position - viewDirection);
-	rightVector = normalize(cross(worldUp, cameraDirection));
-	upVector = cross(cameraDirection, rightVector);
-
-	mat4 cameraVectors(
-		rightVector.x, upVector.x, cameraDirection.x, 0.f,
-		rightVector.y, upVector.y, cameraDirection.y, 0.f,
-		rightVector.z, upVector.z, cameraDirection.z, 0.f,
-		0.f, 0.f, 0.f, 1.f);	
-
-	mat4 cameraPosition (
-		1.f, 0.f, 0.f, 0, 
-		0.f, 1.f, 0.f, 0, 
-		0.f, 0.f, 1.f, 0, 
-		-position.x, -position.y, -position.z, 1.f);
-
-	return cameraVectors * cameraPosition;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+	mainCam.MouseScroll(window, xoffset, yoffset);
 }
 
 int main() {
@@ -403,6 +328,8 @@ int main() {
 
 	//INITIAL CAMERA ROTATION
 	//lastMousePosition = vec2(WIDTH, HEIGHT/2);
+
+	//MOUSE INPUT ENABLING
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
@@ -416,14 +343,8 @@ int main() {
 		glfwSetCursorPosCallback(window, mouse_callback);
 		glfwSetScrollCallback(window, scroll_callback);
 
-		proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
-		DoMovement(window);
-
-		//DELTA TIME
-		actualTime = glfwGetTime();
-		deltaTime = actualTime - lastFrame;
-
-		//cout << deltaTime << endl;
+		proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
+		mainCam.DoMovement(window);
 
 		//Background clear
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -460,16 +381,15 @@ int main() {
 
 #endif
 
-#if(true)
+#if(false)
 
 		//3D TRANSFORMATION
-		//rotationMat = glm::rotate(rotationMat, glm::radians(float(degX)), glm::vec3(1.0f, 0.0f, 0.0f));
-		//rotationMat = glm::rotate(rotationMat, glm::radians(float(degY)), glm::vec3(0.0f, 1.0f, 0.0f));
+		rotationMat = glm::rotate(rotationMat, glm::radians(float(degX)), glm::vec3(1.0f, 0.0f, 0.0f));
+		rotationMat = glm::rotate(rotationMat, glm::radians(float(degY)), glm::vec3(0.0f, 1.0f, 0.0f));
 
 #endif
-
+		//TRANSFORMATION MATRIX
 		transformationMat = translationMat * rotationMat * scalationMat;
-		//mat4 model = transformationMat;
 
 		glUniformMatrix4fv(transformationMatrix, 1, GL_FALSE, value_ptr(transformationMat));
 
@@ -499,7 +419,9 @@ int main() {
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-		view = LookAtMatrix(cameraPos, cameraPos + cameraFront, cameraUp);
+
+		view = mainCam.LookAt();
+
 
 #if(true)
 
@@ -533,9 +455,6 @@ int main() {
 		
 
 #endif
-
-		//UPDATE DELTA TIME
-		lastFrame = actualTime;
 
 		object.USE();
 
