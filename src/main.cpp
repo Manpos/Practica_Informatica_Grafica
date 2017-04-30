@@ -11,6 +11,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+#include "Model.h"
 #include "Camera.h"
 
 using namespace glm;
@@ -22,7 +23,6 @@ const GLint WIDTH = 800, HEIGHT = 800;
 bool WIDEFRAME = false;
 float textOpacity = 0;
 float deg = 0;
-float FOV = 60;
 int degX = 0, degY = 0;
 bool view2D = false;
 
@@ -32,18 +32,12 @@ vec3 cameraFront(0.f,0.f,-1.f);
 vec3 cameraUp(0.0, 1.0, 0.0);
 
 //Camera variables
-//float FOV = 60;
-//float camYaw = 0, camPitch = 0;
-//vec2 lastMousePosition = vec2(WIDTH/2, HEIGHT/2);
-//bool firstMouse = true;
 float cameraVelocity = 10.f;
 float sensitivity = 0.04;
+float FOV = 60;
 
 //Camera object definition
 Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
-
-//Delta Time
-float deltaTime = 0, actualTime = 0, lastFrame = 0;
 
 #pragma endregion
 
@@ -87,8 +81,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
-
-
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	mainCam.MouseMove(window, xpos, ypos);
 }
@@ -131,6 +123,9 @@ int main() {
 	//set function when callback
 	glfwSetKeyCallback(window, key_callback);
 
+	//MOUSE INPUT ENABLING
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	//set windows and viewport
 	int screenWidth, screenHeight;
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
@@ -141,8 +136,14 @@ int main() {
 	//SHADERS
 	//Shader object("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
 	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
-	Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
+	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
+	Shader object("./src/vertexShader3D.txt", "./src/modelFragmentShader.txt");
 
+	//3D MODEL LOADING
+	Model firstModel("./src/3DModel/nanosuit2.obj");
+
+//OWN VBO, VAO, EBO
+#if(false)
 
 	//VBO
 
@@ -239,6 +240,9 @@ int main() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
 
+#endif
+
+//2D TEXTURE
 #if(false)
 
 	//2D Texture 
@@ -252,9 +256,9 @@ int main() {
 
 #endif
 
-#if(true)
+//3D TEXTURE
+#if(false)
 
-	//3D Texture
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 
@@ -264,6 +268,8 @@ int main() {
 #endif
 
 	int width, height;
+
+#pragma region CUBE TEXTURES
 
 	GLuint texture, texture2;
 
@@ -302,6 +308,8 @@ int main() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+#pragma endregion
+	
 	//liberar el buffer
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -323,34 +331,30 @@ int main() {
 
 	//CAMERA POSITIONING
 	mat4 proj = perspective(radians(FOV), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
-	//mat4 view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-	//mat4 view = LookAtMatrix(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
-
-	//INITIAL CAMERA ROTATION
-	//lastMousePosition = vec2(WIDTH, HEIGHT/2);
-
-	//MOUSE INPUT ENABLING
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
+
 		//Key used check
 		glfwSetKeyCallback(window, key_callback);
-
-		//MOUSE INPUT
+		
+		//MOUSE INPUT/CAMERA CONTROLS
 		glfwSetCursorPosCallback(window, mouse_callback);
 		glfwSetScrollCallback(window, scroll_callback);
-
-		proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
 		mainCam.DoMovement(window);
 
 		//Background clear
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		//glClearColor(0.0, 0.0, 0.0, 1.0);
+		//glClearColor(1.0, 1.0, 1.0, 1.0);
+		glClearColor(0.5, 0.5, 0.5, 1.0);
 
-		glBindVertexArray(VAO);
+		//ACTIVATE IF VAO AVAILABLE
+		//glBindVertexArray(VAO);
+
+#pragma region Textures
 
 		//TEXTURES
 		glActiveTexture(GL_TEXTURE0);
@@ -363,14 +367,20 @@ int main() {
 
 		glUniform1f(textureOpacity, textOpacity);
 
+#pragma endregion
+
 		//VERTEX TRANSFORM
 		glUniform1f(variableShader, 0.5 * abs(sin(glfwGetTime())));
+
+#pragma region CameraLookAtMatrices
 
 		//MATRIX MODIFICATION
 		glm::mat4 translationMat;
 		glm::mat4 scalationMat;
 		glm::mat4 rotationMat;
 		glm::mat4 transformationMat;
+
+#pragma endregion
 
 #if(false)
 
@@ -388,10 +398,6 @@ int main() {
 		rotationMat = glm::rotate(rotationMat, glm::radians(float(degY)), glm::vec3(0.0f, 1.0f, 0.0f));
 
 #endif
-		//TRANSFORMATION MATRIX
-		transformationMat = translationMat * rotationMat * scalationMat;
-
-		glUniformMatrix4fv(transformationMatrix, 1, GL_FALSE, value_ptr(transformationMat));
 
 #if(false)
 
@@ -408,24 +414,38 @@ int main() {
 		}
 
 #endif
+		object.USE();
 
-		//CAMERA MOVEMENT
-		//GLfloat rad = 8.0f;
-		//GLfloat X = sin(glfwGetTime()) * rad;
-		//GLfloat Z = cos(glfwGetTime()) * rad;
+		//PROJECTION MATRIX
+		proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
+		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
 
-		mat4 view;
-		
+		//VIEW MATRIX
+		mat4 view = mainCam.LookAt();
+
 		//view = lookAt(vec3(X,0.0,Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
+		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
 
-		view = mainCam.LookAt();
+		//TRANSFORMATION/MODEL MATRIX
+		//transformationMat = translationMat * rotationMat * scalationMat;
+		transformationMat = translate(transformationMat, vec3(0.0, -1.75, 0.0));
+		transformationMat = scale(transformationMat, vec3(0.2, 0.2, 0.2));
+		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(transformationMat));
 
 
-#if(true)
+#if(false)
 
-		//CUBE RENDERING		
+		//RANDOM CAMERA MOVEMENT
+		GLfloat rad = 8.0f;
+		GLfloat X = sin(glfwGetTime()) * rad;
+		GLfloat Z = cos(glfwGetTime()) * rad;
+
+#endif
+
+//CUBE RENDERING		
+#if(false)
 
 		for (int i = 0; i < sizeof(CubesPositionBuffer) / sizeof(vec3); ++i) {
 			mat4 model;
@@ -449,14 +469,10 @@ int main() {
 
 		}
 
-		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
-		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
-
-		
 
 #endif
 
-		object.USE();
+		firstModel.Draw(object, GL_FILL);
 
 		glBindVertexArray(0);
 
@@ -464,11 +480,12 @@ int main() {
 		glfwPollEvents();
 	}
 
-	// liberar la memoria de los VAO, EBO y VBO
+	//Liberar la memoria de los VAO, EBO y VBO
+#if(false)
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
-
+#endif
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	exit(EXIT_SUCCESS);
 }
