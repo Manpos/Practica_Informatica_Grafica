@@ -33,6 +33,9 @@
     <ClCompile Include="src\Model.cpp">
       <Filter>Archivos de código fuente</Filter>
     </ClCompile>
+    <ClCompile Include="src\Object.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\shader.hpp">
@@ -45,6 +48,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Model.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Object.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,5 +68,8 @@
     <Text Include="src\fragmentShader3D.txt" />
     <Text Include="src\vertexShader3D.txt" />
     <Text Include="src\modelFragmentShader.txt" />
+    <Text Include="src\modelVertexShader.txt" />
+    <Text Include="src\lightingFragmentShader.txt" />
+    <Text Include="src\lightingVertexShader.txt" />
   </ItemGroup>
 </Project>
