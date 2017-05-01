@@ -13,7 +13,7 @@ class Object{
 	
 public:
 
-	Object(vec3 scale, vec3 rotation, vec3 position, FigureType typef);
+	Object(glm::vec3 scale, glm::vec3 rotation, glm::vec3 position, FigureType typef);
 	~Object();
 
 	void Start();

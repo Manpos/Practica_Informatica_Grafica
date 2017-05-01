@@ -44,8 +44,31 @@ Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
 FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
 vec3 cubeRotation(0.f);
-vec3 cubeScale(2.f);
+vec3 cubeScale(1.0f);
+
 Object cubito(cubeScale, cubeRotation, cubePosition, fig);
+
+vec3 lightCubeScale(0.1);
+vec3 lightPosition(0.0, 0.0, -4.0);
+vec3 dummyVec3(0.0);
+
+Object lightCube(lightCubeScale, dummyVec3, lightPosition,fig);
+
+//LIGHT PROPERTIES
+//PHONG
+//Ambiental illumination
+GLfloat Ia = 1;	//Ambiental intensity
+GLfloat Ka = 1;	//Ambiental reflexion coeficient
+
+//Difuse illumination
+GLfloat Ii = 1;	//Source intensity
+GLfloat Kd = 1;	//Difuse reflexion coeficient
+vec3 L = lightPosition;	//Light position vector
+vec3 c(1.0, 0.0, 0.0);	//Attenuation constant
+
+//Specular illumination
+GLfloat Ke = 0.8;	//Specular reflexion coeficient
+GLint n = 100;	//Roughness index
 
 #pragma endregion
 
@@ -100,16 +123,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cubito.Rotate(vec3(0.0, -1.f, 0.0));
 	}
 	if (key == GLFW_KEY_I) {
-		cubito.Move(vec3(0.f, 1.0, 0.0));
+		cubito.Move(vec3(0.f, 0.1, 0.0));
 	}
 	if (key == GLFW_KEY_K) {
-		cubito.Move(vec3(0.f, -1.0, 0.0));
+		cubito.Move(vec3(0.f, -0.1, 0.0));
 	}
 	if (key == GLFW_KEY_J) {
-		cubito.Move(vec3(-1.0, 0.f, 0.0));
+		cubito.Move(vec3(0.1, 0.f, 0.0));
 	}
 	if (key == GLFW_KEY_L) {
-		cubito.Move(vec3(1.0, 0.f, 0.0));
+		cubito.Move(vec3(-0.1, 0.f, 0.0));
+	}
+	if (key == GLFW_KEY_O) {
+		cubito.Move(vec3(0.0, 0.f, 0.1));
+	}
+	if (key == GLFW_KEY_P) {
+		cubito.Move(vec3(0.0, 0.f, -0.1));
 	}
 }
 
@@ -168,6 +197,7 @@ int main() {
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
 	Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
+	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
 	//Model firstModel("./src/3DModel/spider.obj");
@@ -359,6 +389,27 @@ int main() {
 	GLint projection = glGetUniformLocation(object.Program, "proj");
 	GLint model3D = glGetUniformLocation(object.Program, "model");
 
+	//LIGHTING PARAMETERS
+
+	//Color
+	GLint objectColor = glGetUniformLocation(object.Program, "objectColor");
+	GLint lightColor = glGetUniformLocation(object.Program, "lightColor");
+
+	//Ambient light
+	GLint ambientalIntensity = glGetUniformLocation(object.Program, "ambientalIntensity");
+	GLint ambientalConstant = glGetUniformLocation(object.Program, "ambientalConstant");
+		
+	//Difuse light
+	GLint lightPos = glGetUniformLocation(object.Program, "lightPos");
+	GLint sourceIntensity = glGetUniformLocation(object.Program, "sourceIntensity");
+	GLint difuseReflection = glGetUniformLocation(object.Program, "difuseReflection");
+	GLint attConst = glGetUniformLocation(object.Program, "attConst");
+	
+	//Specular light
+	GLint specularReflexion = glGetUniformLocation(object.Program, "Ke");
+	GLint roughIndex = glGetUniformLocation(object.Program, "n");
+	GLint viewerPos = glGetUniformLocation(object.Program, "viewerPos");
+
 	//ENABLE Z-BUFFER	
 	glEnable(GL_DEPTH_TEST);
 
@@ -366,6 +417,7 @@ int main() {
 #pragma endregion
 
 	cubito.Start();
+	lightCube.Start();
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -452,6 +504,7 @@ int main() {
 		//PROJECTION MATRIX
 		mat4 proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
 		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
+		
 
 		//VIEW MATRIX
 		mat4 view = mainCam.LookAt();
@@ -460,6 +513,7 @@ int main() {
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
+		
 
 		//MODEL TRANSFORMATION MATRIX
 		//transformationMat = translationMat * rotationMat * scalationMat;
@@ -469,8 +523,40 @@ int main() {
 		//glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 
 		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
+		
+		glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
+		glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
 
+		//PASSING LIGHT VARIABLES
+
+		//Ambient Light
+		glUniform1f(ambientalIntensity, Ia);
+		glUniform1f(ambientalConstant, Ka);
+
+		//Difuse Light
+		glUniform1f(sourceIntensity, Ii);
+		glUniform1f(difuseReflection, Kd);
+		glUniform3f(lightPos, L.x, L.y, L.z);
+		glUniform3f(attConst, c.x, c.y, c.z);
+
+		//Specular Light
+		glUniform1f(specularReflexion, Ke);
+		glUniform1i(roughIndex, n);
+		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
+
+		//DRAW CUBE
 		cubito.Draw();
+
+		//LIGHT CUBE SHADER DATA
+		light.USE();
+
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "proj"), 1, GL_FALSE, value_ptr(proj));
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "view"), 1, GL_FALSE, value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightCube.GetModelMatrix()));
+		
+		//DRAW LIGHT CUBE
+		lightCube.Draw();
+
 
 #if(false)
 

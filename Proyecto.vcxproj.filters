@@ -71,5 +71,7 @@
     <Text Include="src\modelVertexShader.txt" />
     <Text Include="src\lightingFragmentShader.txt" />
     <Text Include="src\lightingVertexShader.txt" />
+    <Text Include="src\lilCubeVS.txt" />
+    <Text Include="src\lilCubeFS.txt" />
   </ItemGroup>
 </Project>
