@@ -14,10 +14,9 @@ uniform float ambientalIntensity;
 uniform float ambientalConstant;
 
 //Difuse light
-uniform vec3 lightPos;
 uniform float sourceIntensity;
 uniform float difuseReflection;
-uniform vec3 attConst;
+uniform vec3 lightDirection;
 
 //Specular light
 uniform float Ke;
@@ -29,14 +28,9 @@ uniform vec3 viewerPos;
 out vec4 color;
 
 void main() {
-
-	//Attenuation factor variables
-	vec3 c = attConst;
-	float d = length(lightPos - fragPos);
-	float attFact = 1 / (c.x + c.y * d + c.z * (d * d));
 	
 	//Other variables
-	vec3 L = normalize(lightPos - fragPos);
+	vec3 L = normalize(-lightDirection);
 	vec3 N = normalize(normalVec);
 	vec3 R = 2 * dot(N, L) * N - L;
 	vec3 V = normalize(viewerPos - fragPos);

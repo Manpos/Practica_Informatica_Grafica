@@ -32,7 +32,7 @@ void main() {
 
 	//Attenuation factor variables
 	vec3 c = attConst;
-	float d = length(lightPos - fragPos);
+	float d = 7;
 	float attFact = 1 / (c.x + c.y * d + c.z * (d * d));
 	
 	//Other variables

@@ -42,8 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\fragmentShader3D.txt" />
+    <Text Include="src\lightDirectionalFS.txt" />
+    <Text Include="src\lightDirectionalVS.txt" />
+    <Text Include="src\lightFocalFS.txt" />
+    <Text Include="src\lightFocalVS.txt" />
     <Text Include="src\lightingFragmentShader.txt" />
     <Text Include="src\lightingVertexShader.txt" />
+    <Text Include="src\lightPointFS.txt" />
+    <Text Include="src\lightPointVS.txt" />
     <Text Include="src\lilCubeFS.txt" />
     <Text Include="src\lilCubeVS.txt" />
     <Text Include="src\modelFragmentShader.txt" />
