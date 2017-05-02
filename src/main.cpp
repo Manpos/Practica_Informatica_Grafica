@@ -14,6 +14,7 @@
 #include "Model.h"
 #include "Camera.h"
 #include "Object.h"
+#include "material.h"
 
 using namespace glm;
 using namespace std;
@@ -39,6 +40,7 @@ float FOV = 60;
 
 //Camera object declaration
 Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
+Material material("./src/Materials/difuso.png", "./src/Materials/especular.png", 0.5);
 
 //Object declaration
 FigureType fig;
@@ -196,9 +198,9 @@ int main() {
 	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
-	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
+	Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
 	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
-	Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
+	//Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
@@ -371,7 +373,10 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glUniform1i(glGetUniformLocation(object.Program, "texture2"), 0);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 
 #endif
 	
@@ -423,6 +428,7 @@ int main() {
 
 #pragma endregion
 
+	material.ActivateTextures();
 	cubito.Start();
 	lightCube.Start();
 
@@ -460,7 +466,8 @@ int main() {
 		glUniform1f(textureOpacity, textOpacity);
 
 #endif
-
+		material.SetMaterial(&object);
+		material.SetShininess(&object);
 		//RANDOM VERTEX TRANSFORM
 		//glUniform1f(variableShader, 0.5 * abs(sin(glfwGetTime())));
 

@@ -1,9 +1,8 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    sampler2D diffuse;
+    sampler2D specular;
     float shininess;
 }; 
 
@@ -11,6 +10,7 @@ struct Material {
 
 in vec3 normalVec;
 in vec3 fragPos;
+in vec2 texCoords;
 
 //Object and light color
 uniform vec3 objectColor;
@@ -35,6 +35,8 @@ uniform vec3 viewerPos;
 // Ouput data
 out vec4 color;
 
+uniform Material material;
+
 void main() {
 
 	//Attenuation factor variables
@@ -58,5 +60,5 @@ void main() {
 	float specular = attFact * sourceIntensity * Ke * pow(dot(V,R), n);
 
 	//Output color
-	color = vec4((ambiental * lightColor + difuse * lightColor + specular * lightColor) * objectColor, 1.0);
+	color = vec4((ambiental * lightColor * vec3(texture(material.diffuse, texCoords)) + difuse * lightColor * vec3(texture(material.diffuse, texCoords)) + specular * lightColor * vec3(texture(material.specular, texCoords))), 1.0);
 }

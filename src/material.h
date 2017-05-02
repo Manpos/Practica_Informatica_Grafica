@@ -2,7 +2,7 @@
 #define GLEW_STATIC
 #include <GL\glew.h>
 #include <SOIL.h>
-#include "Shader.h"
+#include "shader.hpp"
 
 class Material{
 
@@ -15,6 +15,7 @@ public:
 private:
 	GLuint TextDiff, TextSpec;
 	float Shininess;
+	char *diffusePath, *specularPath;
 
 };
 
