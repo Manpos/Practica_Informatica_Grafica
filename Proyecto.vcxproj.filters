@@ -86,5 +86,11 @@
     <Text Include="src\lightDirectionalVS.txt">
       <Filter>Light Shaders</Filter>
     </Text>
+    <Text Include="src\lightFocalFS.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
+    <Text Include="src\lightFocalVS.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
   </ItemGroup>
 </Project>

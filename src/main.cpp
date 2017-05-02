@@ -49,7 +49,7 @@ vec3 cubeScale(1.0f);
 Object cubito(cubeScale, cubeRotation, cubePosition, fig);
 
 vec3 lightCubeScale(0.1);
-vec3 lightPosition(0.0, 0.0, -4.0);
+vec3 lightPosition(0.0, 4.0, 0.0);
 vec3 lightRotation(0.0);
 
 Object lightCube(lightCubeScale, lightRotation, lightPosition,fig);
@@ -64,7 +64,7 @@ GLfloat Ka = 1;	//Ambiental reflexion coeficient
 GLfloat Ii = 1;	//Source intensity
 GLfloat Kd = 1;	//Difuse reflexion coeficient
 vec3 L = lightPosition;	//Light position vector
-vec3 c(1.0, 0.05, 0.1);	//Attenuation constant
+vec3 c(1.0, 0.5, 1);	//Attenuation constant
 
 //Specular illumination
 GLfloat Ke = 0.8;	//Specular reflexion coeficient
@@ -197,7 +197,8 @@ int main() {
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
 	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
-	Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
+	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
+	Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
@@ -412,6 +413,10 @@ int main() {
 	GLint roughIndex = glGetUniformLocation(object.Program, "n");
 	GLint viewerPos = glGetUniformLocation(object.Program, "viewerPos");
 
+	//Focal light parameters
+	GLint maxAperture = glGetUniformLocation(object.Program, "maxAperture");
+	GLint minAperture = glGetUniformLocation(object.Program, "minAperture");
+
 	//ENABLE Z-BUFFER	
 	glEnable(GL_DEPTH_TEST);
 
@@ -540,13 +545,16 @@ int main() {
 		glUniform1f(difuseReflection, Kd);
 		glUniform3f(lightPos, L.x, L.y, L.z);
 		glUniform3f(attConst, c.x, c.y, c.z);
-		glUniform3f(lightDirection, 0.0, 0.3, -0.3);
+		glUniform3f(lightDirection, 0.0, -0.3, 0.0);
 
 		//Specular Light
 		glUniform1f(specularReflexion, Ke);
 		glUniform1i(roughIndex, n);
 		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
 
+		//Focal max Aperture
+		glUniform1f(maxAperture, cos(radians(30.f)));
+		glUniform1f(minAperture, cos(radians(25.f)));
 		//DRAW CUBE
 		cubito.Draw();
 

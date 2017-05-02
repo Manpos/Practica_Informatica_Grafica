@@ -31,7 +31,7 @@ out vec4 color;
 void main() {
 	
 	//Other variables
-	vec3 L = normalize(lightDirection);
+	vec3 L = normalize(-lightDirection);
 	vec3 N = normalize(normalVec);
 	vec3 R = 2 * max(dot(N, L), 0.0) * N - L;
 	vec3 V = normalize(viewerPos - fragPos);
