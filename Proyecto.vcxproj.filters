@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Light Shaders">
+      <UniqueIdentifier>{db7b1d81-3c1d-4931-becf-9c79c0d1d481}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -69,9 +72,19 @@
     <Text Include="src\vertexShader3D.txt" />
     <Text Include="src\modelFragmentShader.txt" />
     <Text Include="src\modelVertexShader.txt" />
-    <Text Include="src\lightingFragmentShader.txt" />
-    <Text Include="src\lightingVertexShader.txt" />
     <Text Include="src\lilCubeVS.txt" />
     <Text Include="src\lilCubeFS.txt" />
+    <Text Include="src\lightingFragmentShader.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
+    <Text Include="src\lightingVertexShader.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
+    <Text Include="src\lightDirectionalFS.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
+    <Text Include="src\lightDirectionalVS.txt">
+      <Filter>Light Shaders</Filter>
+    </Text>
   </ItemGroup>
 </Project>
