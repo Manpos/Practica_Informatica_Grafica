@@ -76,10 +76,6 @@ void Camera::MouseScroll(GLFWwindow* window, double xoffset, double yoffset) {
 		FOV = 100;
 }
 
-vec3 Camera::GetPosition() {
-	return cameraPos;
-}
-
 GLfloat Camera::GetFOV() {
 	return FOV;
 }

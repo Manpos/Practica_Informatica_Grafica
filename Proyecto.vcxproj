@@ -23,7 +23,6 @@
     <ClCompile Include="src\AuxLib.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Object.cpp" />
@@ -31,7 +30,6 @@
   <ItemGroup>
     <ClInclude Include="Common\shader.hpp" />
     <ClInclude Include="src\Camera.h" />
-    <ClInclude Include="src\material.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Object.h" />
@@ -44,14 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\fragmentShader3D.txt" />
-    <Text Include="src\lightDirectionalFS.txt" />
-    <Text Include="src\lightDirectionalVS.txt" />
-    <Text Include="src\lightFocalFS.txt" />
-    <Text Include="src\lightFocalVS.txt" />
     <Text Include="src\lightingFragmentShader.txt" />
     <Text Include="src\lightingVertexShader.txt" />
-    <Text Include="src\lilCubeFS.txt" />
-    <Text Include="src\lilCubeVS.txt" />
     <Text Include="src\modelFragmentShader.txt" />
     <Text Include="src\modelVertexShader.txt" />
     <Text Include="src\vertexShader3D.txt" />

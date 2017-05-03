@@ -27,7 +27,6 @@ public:
 	void DoMovement(GLFWwindow* window);
 	void MouseMove(GLFWwindow* window, double xpos, double ypos);
 	void MouseScroll(GLFWwindow* window, double xoffset, double yoffset);
-	vec3 GetPosition();
 	mat4 LookAt();
 	GLfloat GetFOV();
 

@@ -14,7 +14,6 @@
 #include "Model.h"
 #include "Camera.h"
 #include "Object.h"
-#include "material.h"
 
 using namespace glm;
 using namespace std;
@@ -40,37 +39,16 @@ float FOV = 60;
 
 //Camera object declaration
 Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
-Material material("./src/Materials/difuso.png", "./src/Materials/especular.png", 0.5);
 
 //Object declaration
 FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
 vec3 cubeRotation(0.f);
-vec3 cubeScale(1.0f);
-
+vec3 cubeScale(2.f);
 Object cubito(cubeScale, cubeRotation, cubePosition, fig);
 
-vec3 lightCubeScale(0.1);
-vec3 lightPosition(0.0, 4.0, 0.0);
-vec3 lightRotation(0.0);
-
-Object lightCube(lightCubeScale, lightRotation, lightPosition,fig);
-
-//LIGHT PROPERTIES
-//PHONG
-//Ambiental illumination
-GLfloat Ia = 1;	//Ambiental intensity
-GLfloat Ka = 1;	//Ambiental reflexion coeficient
-
-//Difuse illumination
-GLfloat Ii = 1;	//Source intensity
-GLfloat Kd = 1;	//Difuse reflexion coeficient
-vec3 L = lightPosition;	//Light position vector
-vec3 c(1.0, 0.5, 1);	//Attenuation constant
-
-//Specular illumination
-GLfloat Ke = 0.8;	//Specular reflexion coeficient
-GLint n = 100;		//Roughness index
+//Model drawed
+int currentModel = 1;
 
 #pragma endregion
 
@@ -125,22 +103,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cubito.Rotate(vec3(0.0, -1.f, 0.0));
 	}
 	if (key == GLFW_KEY_I) {
-		cubito.Move(vec3(0.f, 0.1, 0.0));
+		cubito.Move(vec3(0.f, 1.0, 0.0));
 	}
 	if (key == GLFW_KEY_K) {
-		cubito.Move(vec3(0.f, -0.1, 0.0));
+		cubito.Move(vec3(0.f, -1.0, 0.0));
 	}
 	if (key == GLFW_KEY_J) {
-		cubito.Move(vec3(0.1, 0.f, 0.0));
+		cubito.Move(vec3(-1.0, 0.f, 0.0));
 	}
 	if (key == GLFW_KEY_L) {
-		cubito.Move(vec3(-0.1, 0.f, 0.0));
+		cubito.Move(vec3(1.0, 0.f, 0.0));
 	}
-	if (key == GLFW_KEY_O) {
-		cubito.Move(vec3(0.0, 0.f, 0.1));
+	if (key == GLFW_KEY_1) {
+		currentModel = 1;
 	}
-	if (key == GLFW_KEY_P) {
-		cubito.Move(vec3(0.0, 0.f, -0.1));
+	if (key == GLFW_KEY_2) {
+		currentModel = 2;
+	}
+	if (key == GLFW_KEY_3) {
+		currentModel = 3;
+	}
+	if (key == GLFW_KEY_4) {
+		currentModel = 4;
 	}
 }
 
@@ -197,17 +181,14 @@ int main() {
 	//Shader object("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
 	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
-	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
-	Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
-	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
-	//Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
-	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
+	Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
+	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
 
 	//3D MODEL LOADING
-	//Model firstModel("./src/3DModel/spider.obj");
-	//Model secondModel("./src/3DModel/nanosuit2.obj");
-	//Model secondModel("./src/3DModel/wusonOBJ.obj");
-	//Model secondModel("./src/3DModel/");
+	Model firstModel("./src/3DModel/spider.obj");
+	Model secondModel("./src/3DModel/Tractor.3ds");
+	Model thirdModel("./src/3DModel/nanosuit.obj");
+	Model fourthModel("./src/3DModel/farmhouse_obj.obj");
 
 //OWN VBO, VAO, EBO
 #if(false)
@@ -373,10 +354,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glUniform1i(glGetUniformLocation(object.Program, "texture2"), 0);
-
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 
 #endif
 	
@@ -396,41 +374,12 @@ int main() {
 	GLint projection = glGetUniformLocation(object.Program, "proj");
 	GLint model3D = glGetUniformLocation(object.Program, "model");
 
-	//LIGHTING PARAMETERS
-
-	//Color
-	GLint objectColor = glGetUniformLocation(object.Program, "objectColor");
-	GLint lightColor = glGetUniformLocation(object.Program, "lightColor");
-
-	//Ambient light
-	GLint ambientalIntensity = glGetUniformLocation(object.Program, "ambientalIntensity");
-	GLint ambientalConstant = glGetUniformLocation(object.Program, "ambientalConstant");
-		
-	//Difuse light
-	GLint lightPos = glGetUniformLocation(object.Program, "lightPos");
-	GLint sourceIntensity = glGetUniformLocation(object.Program, "sourceIntensity");
-	GLint difuseReflection = glGetUniformLocation(object.Program, "difuseReflection");
-	GLint attConst = glGetUniformLocation(object.Program, "attConst");
-	GLint lightDirection = glGetUniformLocation(object.Program, "lightDirection");
-	
-	//Specular light
-	GLint specularReflexion = glGetUniformLocation(object.Program, "Ke");
-	GLint roughIndex = glGetUniformLocation(object.Program, "n");
-	GLint viewerPos = glGetUniformLocation(object.Program, "viewerPos");
-
-	//Focal light parameters
-	GLint maxAperture = glGetUniformLocation(object.Program, "maxAperture");
-	GLint minAperture = glGetUniformLocation(object.Program, "minAperture");
-
 	//ENABLE Z-BUFFER	
 	glEnable(GL_DEPTH_TEST);
 
 
 #pragma endregion
 
-	material.ActivateTextures();
-	cubito.Start();
-	lightCube.Start();
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -443,9 +392,9 @@ int main() {
 		mainCam.DoMovement(window);
 
 		//Background clear
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		//glClearColor(0.0, 0.0, 0.0, 1.0);
 		//glClearColor(1.0, 1.0, 1.0, 1.0);
-		//glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//ACTIVATE IF VAO AVAILABLE
@@ -466,8 +415,7 @@ int main() {
 		glUniform1f(textureOpacity, textOpacity);
 
 #endif
-		material.SetMaterial(&object);
-		material.SetShininess(&object);
+
 		//RANDOM VERTEX TRANSFORM
 		//glUniform1f(variableShader, 0.5 * abs(sin(glfwGetTime())));
 
@@ -518,7 +466,6 @@ int main() {
 		//PROJECTION MATRIX
 		mat4 proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
 		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
-		
 
 		//VIEW MATRIX
 		mat4 view = mainCam.LookAt();
@@ -527,54 +474,34 @@ int main() {
 		//view = LookAtMatrix(vec3(X, 0.0f, Z), direction, vec3(0.0f, 1.f, 0.f));
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
-		
 
 		//MODEL TRANSFORMATION MATRIX
 		//transformationMat = translationMat * rotationMat * scalationMat;
+		
 		mat4 model;
-		//model = translate(model, vec3(0.0, -1.75, 0.0));
-		//model = scale(model, vec3(2.0, 2.0, 2.0));
-		//glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 
-		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
+		switch (currentModel)
+		{
+		case 1:
+			model = scale(model, vec3(0.1));
+			firstModel.Draw(object, GL_FILL);
+			break;
+		case 2:
+			model = rotate(model, (float)radians(-90.0), vec3(1.0, 0.0, 0.0));
+			model = scale(model, vec3(0.1));
+			secondModel.Draw(object, GL_FILL);
+			break;
+		case 3:
+			model = scale(model, vec3(1.0));
+			thirdModel.Draw(object, GL_FILL);
+			break;
+		case 4:
+			model = scale(model, vec3(0.3));
+			fourthModel.Draw(object, GL_FILL);
+			break;
+		}
 		
-		glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
-		glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
-
-		//PASSING LIGHT VARIABLES
-
-		//Ambient Light
-		glUniform1f(ambientalIntensity, Ia);
-		glUniform1f(ambientalConstant, Ka);
-
-		//Difuse Light
-		glUniform1f(sourceIntensity, Ii);
-		glUniform1f(difuseReflection, Kd);
-		glUniform3f(lightPos, L.x, L.y, L.z);
-		glUniform3f(attConst, c.x, c.y, c.z);
-		glUniform3f(lightDirection, 0.0, -0.3, 0.0);
-
-		//Specular Light
-		glUniform1f(specularReflexion, Ke);
-		glUniform1i(roughIndex, n);
-		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
-
-		//Focal max Aperture
-		glUniform1f(maxAperture, cos(radians(30.f)));
-		glUniform1f(minAperture, cos(radians(25.f)));
-		//DRAW CUBE
-		cubito.Draw();
-
-		//LIGHT CUBE SHADER DATA
-		light.USE();
-
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "proj"), 1, GL_FALSE, value_ptr(proj));
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "view"), 1, GL_FALSE, value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightCube.GetModelMatrix()));
-		
-		//DRAW LIGHT CUBE
-		lightCube.Draw();
-
+		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 
 #if(false)
 
