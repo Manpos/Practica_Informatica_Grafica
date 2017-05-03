@@ -1,9 +1,16 @@
 #version 330 core
 
+struct Material {
+    sampler2D diffuse;
+    sampler2D specular;
+    float shininess;
+}; 
+
 // Input data
 
 in vec3 normalVec;
 in vec3 fragPos;
+in vec2 texCoords;
 
 //Object and light color
 uniform vec3 objectColor;
@@ -28,6 +35,8 @@ uniform vec3 viewerPos;
 // Ouput data
 out vec4 color;
 
+uniform Material material;
+
 void main() {
 
 	//Attenuation factor variables
@@ -42,14 +51,14 @@ void main() {
 	vec3 V = normalize(viewerPos - fragPos);
 
 	//Ambiental Light
-	float ambiental = ambientalIntensity * ambientalConstant;
+	float ambiental = attFact * ambientalIntensity * ambientalConstant;
 
 	//Difuse Light
-	float difuse = sourceIntensity * difuseReflection * (max(dot(N, L), 0.0));
+	float difuse = attFact * sourceIntensity * difuseReflection * (max(dot(N, L), 0.0));
 
 	//Specular Light
-	float specular = sourceIntensity * Ke * pow(dot(V,R), n);
+	float specular = attFact * sourceIntensity * Ke * pow(dot(V,R), n);
 
 	//Output color
-	color = vec4((ambiental * lightColor + difuse * lightColor + specular * lightColor) * objectColor, 1.0);
+	color = vec4((ambiental * lightColor * vec3(texture(material.diffuse, texCoords)) + difuse * lightColor * vec3(texture(material.diffuse, texCoords)) + specular * lightColor * vec3(texture(material.specular, texCoords))), 1.0);
 }
