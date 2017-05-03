@@ -45,14 +45,14 @@ FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
 vec3 cubeRotation(0.f);
 vec3 cubeScale(1.0f);
-		
+
 Object cubito(cubeScale, cubeRotation, cubePosition, fig);
 
 vec3 lightCubeScale(0.1);
 vec3 lightPosition(0.0, 0.0, -4.0);
-vec3 lightRotation(0.0);
+vec3 dummyVec3(0.0);
 
-Object lightCube(lightCubeScale, lightRotation, lightPosition,fig);
+Object lightCube(lightCubeScale, dummyVec3, lightPosition,fig);
 
 //LIGHT PROPERTIES
 //PHONG
@@ -64,7 +64,7 @@ GLfloat Ka = 1;	//Ambiental reflexion coeficient
 GLfloat Ii = 1;	//Source intensity
 GLfloat Kd = 1;	//Difuse reflexion coeficient
 vec3 L = lightPosition;	//Light position vector
-vec3 c(1.0, 0.07, 0.5);	//Attenuation constant
+vec3 c(1.0, 0.0, 0.0);	//Attenuation constant
 
 //Specular illumination
 GLfloat Ke = 0.8;	//Specular reflexion coeficient
@@ -196,9 +196,7 @@ int main() {
 	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
-	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
-	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
-	Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
+	Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
@@ -406,7 +404,6 @@ int main() {
 	GLint sourceIntensity = glGetUniformLocation(object.Program, "sourceIntensity");
 	GLint difuseReflection = glGetUniformLocation(object.Program, "difuseReflection");
 	GLint attConst = glGetUniformLocation(object.Program, "attConst");
-	GLint lightDirection = glGetUniformLocation(object.Program, "lightDirection");
 	
 	//Specular light
 	GLint specularReflexion = glGetUniformLocation(object.Program, "Ke");
@@ -541,7 +538,6 @@ int main() {
 		glUniform1f(difuseReflection, Kd);
 		glUniform3f(lightPos, L.x, L.y, L.z);
 		glUniform3f(attConst, c.x, c.y, c.z);
-		glUniform3f(lightDirection, -0.0f, -0.30f, 0.3f);
 
 		//Specular Light
 		glUniform1f(specularReflexion, Ke);

@@ -38,7 +38,7 @@ void main() {
 	//Other variables
 	vec3 L = normalize(lightPos - fragPos);
 	vec3 N = normalize(normalVec);
-	vec3 R = 2 * dot(N, L) * N - L;
+	vec3 R = 2 * max(dot(N, L), 0.0) * N - L;
 	vec3 V = normalize(viewerPos - fragPos);
 
 	//Ambiental Light
@@ -48,7 +48,7 @@ void main() {
 	float difuse = sourceIntensity * difuseReflection * (max(dot(N, L), 0.0));
 
 	//Specular Light
-	float specular = sourceIntensity * Ke * pow(max(dot(V,R), 0.0), n);
+	float specular = sourceIntensity * Ke * pow(dot(V,R), n);
 
 	//Output color
 	color = vec4((ambiental * lightColor + difuse * lightColor + specular * lightColor) * objectColor, 1.0);
