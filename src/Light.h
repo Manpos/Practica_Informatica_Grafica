@@ -15,7 +15,6 @@ public:
 		SPOT = 2
 	};
 	Light(vec3 pos, vec3 dir, vec3 ambient, vec3 diffuse, vec3 specular, LType lType, int number);
-	~Light();
 	void SetAtt(float constant, float lineal, float quadratic);
 	void SetLight(Shader *shad, vec3 CamPos);
 	void Rotate(vec3 rotation);

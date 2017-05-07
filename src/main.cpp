@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "Object.h"
 #include "material.h"
+#include "Light.h"
 
 using namespace glm;
 using namespace std;
@@ -40,8 +41,16 @@ float FOV = 60;
 
 //Camera object declaration
 Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
+
+//Material object
 Material material("./src/Materials/difuso.png", "./src/Materials/especular.png", 0.5);
 
+//Light object
+Light lDir(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 0, 0);
+Light lPoint1(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 0);
+Light lPoint2(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 1);
+Light lSpot1(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 0);
+Light lSpot2(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 1);
 //Object declaration
 FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
@@ -198,9 +207,10 @@ int main() {
 	//Shader object("./src/textureVertexShader.vert", "./src/textureFragmentShader.frag");
 	//Shader object("./src/vertexShader3D.txt", "./src/fragmentShader3D.txt");
 	//Shader object("./src/modelVertexShader.txt", "./src/modelFragmentShader.txt");
-	Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
+	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
 	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
 	//Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
+	Shader object("./src/VertexShaderPhongTexture.vs", "./src/FragmentShaderPhongTexture.fs");
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
@@ -538,24 +548,36 @@ int main() {
 
 		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
 		
-		glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
-		glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
+		lDir.SetLight(&object, cameraPos);
+		lPoint1.SetAtt(c.x, c.y, c.z);
+		lPoint2.SetAtt(c.x, c.y, c.z);
+		lSpot1.SetAtt(c.x, c.y, c.z);
+		lSpot2.SetAtt(c.x, c.y, c.z);
+		lPoint1.SetLight(&object, cameraPos);
+		lPoint2.SetLight(&object, cameraPos);
+		lSpot1.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
+		lSpot2.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
+		lSpot1.SetLight(&object, cameraPos);
+		lSpot2.SetLight(&object, cameraPos);
 
-		//PASSING LIGHT VARIABLES
+		//glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
+		//glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
 
-		//Ambient Light
-		glUniform1f(ambientalIntensity, Ia);
-		glUniform1f(ambientalConstant, Ka);
+		////PASSING LIGHT VARIABLES
 
-		//Difuse Light
-		glUniform1f(sourceIntensity, Ii);
-		glUniform1f(difuseReflection, Kd);
-		glUniform3f(lightPos, L.x, L.y, L.z);
-		glUniform3f(attConst, c.x, c.y, c.z);
-		glUniform3f(lightDirection, 0.0, -0.3, 0.0);
+		////Ambient Light
+		//glUniform1f(ambientalIntensity, Ia);
+		//glUniform1f(ambientalConstant, Ka);
 
-		//Specular Light
-		glUniform1f(specularReflexion, Ke);
+		////Difuse Light
+		//glUniform1f(sourceIntensity, Ii);
+		//glUniform1f(difuseReflection, Kd);
+		//glUniform3f(lightPos, L.x, L.y, L.z);
+		//glUniform3f(attConst, c.x, c.y, c.z);
+		//glUniform3f(lightDirection, 0.0, -0.3, 0.0);
+
+		////Specular Light
+		//glUniform1f(specularReflexion, Ke);
 		glUniform1i(roughIndex, n);
 		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
 

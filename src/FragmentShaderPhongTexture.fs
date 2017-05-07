@@ -57,7 +57,11 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition);
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition);
 
 void main(){
-
+	vec3 pLight1 = PointLight(plight[0], normalVec, viewPos), pLight2 = PointLight(plight[1], normalVec, viewPos);
+	vec3 sLight1 = SpotLight(slight[0], normalVec, viewPos), sLight2 = SpotLight(slight[1], normalVec, viewPos);
+	vec3 dLight1 = DirectionalLight(dlight, normalVec, viewPos);
+	//Output color
+	color = vec4((pLight1 + pLight2 + sLight1 + sLight2 + dLight1), 1.0);
 	
 } 
 
@@ -69,12 +73,12 @@ vec3 DirectionalLight(DLight light, vec3 Normal, vec3 viewPosition){
 	vec3 V = normalize(viewPosition - fragPos);
 
 	//Difuse Light - Checked
-	vec3 diffuse = light.diffuse * (max(dot(N, L), 0.0));
+	vec3 diffuse = light.diffuse * (max(dot(N, L), 0.0)) * material.diffuse;
 
 	//Specular Light
-	vec3 specular =  light.specular * pow(max(dot(R,V), 0.0), n);
+	vec3 specular =  light.specular * pow(max(dot(R,V), 0.0), n) * material.specular;
 
-	return light.ambient + diffuse + specular;
+	return light.ambient * material.diffuse + diffuse + specular;
 }
 
 vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
@@ -89,13 +93,13 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
 	vec3 V = normalize(viewPosition - fragPos);
 
 	//Ambient Light
-	vec3 ambient = attFact * light.ambient;
+	vec3 ambient = attFact * light.ambient * material.diffuse;
 
 	//Difuse Light
-	vec3 diffuse = attFact * light.diffuse * (max(dot(N, L), 0.0));
+	vec3 diffuse = attFact * light.diffuse * (max(dot(N, L), 0.0)) * material.diffuse;
 
 	//Specular Light
-	vec3 specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n);
+	vec3 specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n) * material.specular;
 
 	return ambient + diffuse + specular;
 }
@@ -125,13 +129,13 @@ vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
 	if(theta > light.maxAperture){
 
 		//Ambiental Light
-		ambiental = attFact * light.ambient;
+		ambiental = attFact * light.ambient * material.diffuse;
 
 		//Difuse Light
-		difuse = attFact * light.diffuse * (max(dot(N, L), 0.0));
+		difuse = attFact * light.diffuse * (max(dot(N, L), 0.0)) * material.diffuse;
 
 		//Specular Light
-		specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n);
+		specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n) * material.specular;
 
 		//Output color
 		return ambiental + inte * diffuse + inte * specular;
@@ -141,7 +145,7 @@ vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
 	else{
 
 		//Ambiental Light
-		ambiental = attFact * light.ambient;
+		ambiental = attFact * light.ambient * material.diffuse;
 
 		return ambiental;
 
