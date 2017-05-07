@@ -22,6 +22,7 @@
     <ClCompile Include="Common\shader.cpp" />
     <ClCompile Include="src\AuxLib.cpp" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -31,16 +32,19 @@
   <ItemGroup>
     <ClInclude Include="Common\shader.hpp" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Object.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\FragmentShaderPhongTexture.fs" />
     <None Include="src\SimpleFragmentShader.fragmentshader" />
     <None Include="src\SimpleVertexShader.vertexshader" />
     <None Include="src\textureFragmentShader.frag" />
     <None Include="src\textureVertexShader.vert" />
+    <None Include="src\VertexShaderPhongTexture.vs" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\fragmentShader3D.txt" />
