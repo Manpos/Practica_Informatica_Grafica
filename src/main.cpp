@@ -46,11 +46,16 @@ Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
 Material material("./src/Materials/difuso.png", "./src/Materials/especular.png", 0.5);
 
 //Light object
-Light lDir(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 0, 0);
-Light lPoint1(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 0);
-Light lPoint2(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 1);
-Light lSpot1(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 0);
-Light lSpot2(vec3(10.f), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 1);
+Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.5), vec3(0.5), vec3(0.5), (Light::LType) 0, 0);
+Light lPoint1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 0);
+Light lPoint2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 1);
+Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 0);
+Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 1);
+
+//Light objects position buffer
+vec3 lightPositionBuffer[4];
+
+
 //Object declaration
 FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
@@ -64,6 +69,13 @@ vec3 lightPosition(0.0, 4.0, 0.0);
 vec3 lightRotation(0.0);
 
 Object lightCube(lightCubeScale, lightRotation, lightPosition,fig);
+
+//Extra Lamps
+
+Object lightPoint1(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightPoint2(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightSpot1(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightSpot2(lightCubeScale, lightRotation, vec3(0.0), fig);
 
 //LIGHT PROPERTIES
 //PHONG
@@ -438,9 +450,24 @@ int main() {
 
 #pragma endregion
 
+	lightPositionBuffer[0] = lPoint1.GetPosition();
+	lightPositionBuffer[1] = lPoint2.GetPosition();
+	lightPositionBuffer[2] = lSpot1.GetPosition();
+	lightPositionBuffer[3] = lSpot2.GetPosition();
+
+	lightPoint1.Start();
+	lightPoint2.Start();
+	lightSpot1.Start();
+	lightSpot2.Start();
+
+	lightPoint1.Move(lightPositionBuffer[0]);
+	lightPoint2.Move(lightPositionBuffer[1]);
+	lightSpot1.Move(lightPositionBuffer[2]);
+	lightSpot2.Move(lightPositionBuffer[3]);
+
 	material.ActivateTextures();
 	cubito.Start();
-	lightCube.Start();
+	//lightCube.Start();
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -549,16 +576,24 @@ int main() {
 		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
 		
 		lDir.SetLight(&object, cameraPos);
+
 		lPoint1.SetAtt(c.x, c.y, c.z);
 		lPoint2.SetAtt(c.x, c.y, c.z);
 		lSpot1.SetAtt(c.x, c.y, c.z);
 		lSpot2.SetAtt(c.x, c.y, c.z);
+
+		lPoint1.SetColor(vec3(0.0, 0.0, 1.0));
+
 		lPoint1.SetLight(&object, cameraPos);
 		lPoint2.SetLight(&object, cameraPos);
+
 		lSpot1.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
 		lSpot2.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
+		lSpot1.SetColor(vec3(0.0, 1.0, 0.0));
+
 		lSpot1.SetLight(&object, cameraPos);
 		lSpot2.SetLight(&object, cameraPos);
+
 
 		//glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
 		//glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
@@ -592,10 +627,19 @@ int main() {
 
 		glUniformMatrix4fv(glGetUniformLocation(light.Program, "proj"), 1, GL_FALSE, value_ptr(proj));
 		glUniformMatrix4fv(glGetUniformLocation(light.Program, "view"), 1, GL_FALSE, value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightCube.GetModelMatrix()));
+		//glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightCube.GetModelMatrix()));
+
 		
 		//DRAW LIGHT CUBE
-		lightCube.Draw();
+		//lightCube.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint1.GetModelMatrix()));
+		lightPoint1.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint2.GetModelMatrix()));
+		lightPoint2.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightSpot1.GetModelMatrix()));
+		lightSpot1.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightSpot2.GetModelMatrix()));
+		lightSpot2.Draw();
 
 
 #if(false)

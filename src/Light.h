@@ -20,6 +20,7 @@ public:
 	void Rotate(vec3 rotation);
 	void SetDirection(vec3 dir);
 	void SetAperture(float min, float max);
+	vec3 GetPosition();
 	void SetPosition(vec3 pos);
 	void SetColor(vec3 color);
 	vec3 GetColor();

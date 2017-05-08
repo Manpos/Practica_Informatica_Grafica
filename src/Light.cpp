@@ -46,41 +46,48 @@ void Light::SetLight(Shader *shad, vec3 CamPos) {
 		glUniform3f(glGetUniformLocation(shad->Program, "dlight.direction"), Ldirection.x, Ldirection.y, Ldirection.z);
 
 		//Ambiental light
-		result = Lambient * Lcolor;
+		result = Lambient;
 		glUniform3f(glGetUniformLocation(shad->Program, "dlight.ambient"), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Diffuse light
-		result = Ldiffuse * Lcolor;
+		result = Ldiffuse;
 		glUniform3f(glGetUniformLocation(shad->Program, "dlight.diffuse"), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Specular light
-		result = Lspecular * Lcolor;
+		result = Lspecular;
 		glUniform3f(glGetUniformLocation(shad->Program, "dlight.specular"), result.x, result.y, result.z);
 		result = vec3(0.0);
+
+		//Light color
+		glUniform3f(glGetUniformLocation(shad->Program, "dlight.color"), Lcolor.x, Lcolor.y, Lcolor.z);
+
 
 		break;
 	case POINT:		
 		variable = "plight[" + std::to_string(lightNumber) + "]";
 
 		//Light Position
-		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".ambient").c_str()), Lpos.x, Lpos.y, Lpos.z);
+		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".position").c_str()), Lpos.x, Lpos.y, Lpos.z);
 
 		//Ambiental light
-		result = Lambient * Lcolor;
+		result = Lambient;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".ambient").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Diffuse light
-		result = Ldiffuse * Lcolor;
+		result = Ldiffuse;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".diffuse").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Specular light
-		result = Lspecular * Lcolor;
+		result = Lspecular;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".specular").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
+
+		//Light color
+		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".color").c_str()), Lcolor.x, Lcolor.y, Lcolor.z);
 
 		//Constant, linear and quadratic attenuation
 		glUniform1f(glGetUniformLocation(shad->Program, std::string(variable + ".constant").c_str()), c1);
@@ -95,22 +102,25 @@ void Light::SetLight(Shader *shad, vec3 CamPos) {
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".position").c_str()), Lpos.x, Lpos.y, Lpos.z);
 
 		//Light Direction
-		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".direction").c_str()), Lpos.x, Lpos.y, Lpos.z);
+		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".direction").c_str()), Ldirection.x, Ldirection.y, Ldirection.z);
 
 		//Ambiental light
-		result = Lambient * Lcolor;
+		result = Lambient;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".ambient").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Diffuse light
-		result = Ldiffuse * Lcolor;
+		result = Ldiffuse;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".diffuse").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
 
 		//Specular light
-		result = Lspecular * Lcolor;
+		result = Lspecular;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".specular").c_str()), result.x, result.y, result.z);
 		result = vec3(0.0);
+
+		//Light color
+		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".color").c_str()), Lcolor.x, Lcolor.y, Lcolor.z);
 
 		//Min and max aperture
 		glUniform1f(glGetUniformLocation(shad->Program, std::string(variable + ".minAperture").c_str()), MinAperture);
@@ -133,6 +143,10 @@ void Light::Rotate(vec3 rotation) {
 
 void Light::SetDirection(vec3 dir) {
 	Ldirection = dir;
+}
+
+vec3 Light::GetPosition() {
+	return Lpos;
 }
 
 void Light::SetPosition(vec3 pos) {

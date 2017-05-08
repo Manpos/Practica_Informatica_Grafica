@@ -17,6 +17,8 @@ struct PLight {
 	vec3 specular;
 
 	float constant, linear, quadratic;
+
+	vec3 color;
 };
 
 struct DLight {
@@ -25,6 +27,7 @@ struct DLight {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+	vec3 color;
 };
 
 struct SLight {
@@ -37,6 +40,8 @@ struct SLight {
 
 	float minAperture, maxAperture;
 	float constant, linear, quadratic;
+
+	vec3 color;
 };
 
 in vec3 fragPos;  
@@ -78,7 +83,7 @@ vec3 DirectionalLight(DLight light, vec3 Normal, vec3 viewPosition){
 	//Specular Light
 	vec3 specular =  light.specular * pow(max(dot(R,V), 0.0), n) * vec3(texture(material.specular, texCoords));
 
-	return light.ambient * vec3(texture(material.diffuse, texCoords)) + diffuse + specular;
+	return (light.ambient * vec3(texture(material.diffuse, texCoords)) + diffuse + specular) * light.color;
 }
 
 vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
@@ -101,7 +106,7 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
 	//Specular Light
 	vec3 specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n) * vec3(texture(material.specular, texCoords));
 
-	return ambient + diffuse + specular;
+	return (ambient + diffuse + specular) * light.color;
 }
 
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
@@ -113,7 +118,7 @@ vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
 	//Other variables
 	vec3 L = normalize(light.position - fragPos);
 	vec3 N = normalize(Normal);
-	vec3 R = reflect(-L, N);
+	vec3 R = 2 * max(dot(N, L), 0.0) * N - L;
 	vec3 V = normalize(viewPosition - fragPos);
 
 	//Light types
@@ -135,17 +140,17 @@ vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
 		diffuse = attFact * light.diffuse * (max(dot(N, L), 0.0)) * vec3(texture(material.diffuse, texCoords));
 
 		//Specular Light
-		specular = attFact * light.specular * pow(max(dot(R,V), 0.0), n) * vec3(texture(material.specular, texCoords));
+		specular = attFact * light.specular * pow(dot(R,V), n) * vec3(texture(material.specular, texCoords));
 
 		//Output color
-		return ambiental + inte * diffuse + inte * specular;
+		return (ambiental + inte * diffuse + inte * specular) * light.color;
 
 	}
 
 	else{
 
 		//Ambiental Light
-		ambiental = attFact * light.ambient * vec3(texture(material.diffuse, texCoords));
+		ambiental = attFact * light.ambient * light.color * vec3(texture(material.diffuse, texCoords));
 
 		return ambiental;
 
