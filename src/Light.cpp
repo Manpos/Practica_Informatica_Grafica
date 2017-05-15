@@ -70,7 +70,10 @@ void Light::SetLight(Shader *shad, vec3 CamPos) {
 
 		//Light Position
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".position").c_str()), Lpos.x, Lpos.y, Lpos.z);
-
+		
+		//Light Direction
+		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".direction").c_str()), Ldirection.x, Ldirection.y, Ldirection.z);
+		
 		//Ambiental light
 		result = Lambient;
 		glUniform3f(glGetUniformLocation(shad->Program, std::string(variable + ".ambient").c_str()), result.x, result.y, result.z);

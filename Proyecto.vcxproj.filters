@@ -106,5 +106,7 @@
     <Text Include="src\lightFocalVS.txt">
       <Filter>Light Shaders</Filter>
     </Text>
+    <Text Include="src\gammaCorrectionFS.txt" />
+    <Text Include="src\gammaCorrectionVS.txt" />
   </ItemGroup>
 </Project>

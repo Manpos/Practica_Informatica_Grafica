@@ -43,24 +43,16 @@ float FOV = 60;
 Camera mainCam(cameraPos, cameraPos + cameraFront, sensitivity, FOV);
 
 //Material object
-Material material("./src/Materials/difuso.png", "./src/Materials/especular.png", 0.5);
-
-//Light object
-Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.5), vec3(0.5), vec3(0.5), (Light::LType) 0, 0);
-Light lPoint1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 0);
-Light lPoint2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 1, 1);
-Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 0);
-Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(1.0), vec3(1.0), vec3(1.0), (Light::LType) 2, 1);
+Material material("./src/Materials/woodDiffuse.jpg", "./src/Materials/woodSpecular.png", 1.0);
 
 //Light objects position buffer
 vec3 lightPositionBuffer[4];
-
 
 //Object declaration
 FigureType fig;
 vec3 cubePosition(0.0, -1.75, 0.0);
 vec3 cubeRotation(0.f);
-vec3 cubeScale(1.0f);
+vec3 cubeScale(10.0f);
 
 Object cubito(cubeScale, cubeRotation, cubePosition, fig);
 
@@ -68,14 +60,7 @@ vec3 lightCubeScale(0.1);
 vec3 lightPosition(0.0, 4.0, 0.0);
 vec3 lightRotation(0.0);
 
-Object lightCube(lightCubeScale, lightRotation, lightPosition,fig);
-
-//Extra Lamps
-
-Object lightPoint1(lightCubeScale, lightRotation, vec3(0.0), fig);
-Object lightPoint2(lightCubeScale, lightRotation, vec3(0.0), fig);
-Object lightSpot1(lightCubeScale, lightRotation, vec3(0.0), fig);
-Object lightSpot2(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightCube(lightCubeScale, lightRotation, lightPosition, fig);
 
 //LIGHT PROPERTIES
 //PHONG
@@ -92,6 +77,22 @@ vec3 c(1.0, 0.5, 1);	//Attenuation constant
 //Specular illumination
 GLfloat Ke = 0.8;	//Specular reflexion coeficient
 GLint n = 100;		//Roughness index
+
+//Light object
+Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 0, 0);
+Light lPoint1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 0);
+Light lPoint2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 1);
+Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 2, 0);
+Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 2, 1);
+
+//Extra Lamps
+
+Object lightPoint1(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightPoint2(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightSpot1(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightSpot2(lightCubeScale, lightRotation, vec3(0.0), fig);
+
+
 
 #pragma endregion
 
@@ -438,7 +439,7 @@ int main() {
 	//Specular light
 	GLint specularReflexion = glGetUniformLocation(object.Program, "Ke");
 	GLint roughIndex = glGetUniformLocation(object.Program, "n");
-	GLint viewerPos = glGetUniformLocation(object.Program, "viewerPos");
+	GLint viewerPos = glGetUniformLocation(object.Program, "viewPos");
 
 	//Focal light parameters
 	GLint maxAperture = glGetUniformLocation(object.Program, "maxAperture");
@@ -596,23 +597,23 @@ int main() {
 
 
 		//glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
-		//glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
+		glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
 
 		////PASSING LIGHT VARIABLES
 
 		////Ambient Light
-		//glUniform1f(ambientalIntensity, Ia);
-		//glUniform1f(ambientalConstant, Ka);
+		glUniform1f(ambientalIntensity, Ia);
+		glUniform1f(ambientalConstant, Ka);
 
 		////Difuse Light
-		//glUniform1f(sourceIntensity, Ii);
-		//glUniform1f(difuseReflection, Kd);
-		//glUniform3f(lightPos, L.x, L.y, L.z);
-		//glUniform3f(attConst, c.x, c.y, c.z);
-		//glUniform3f(lightDirection, 0.0, -0.3, 0.0);
+		glUniform1f(sourceIntensity, Ii);
+		glUniform1f(difuseReflection, Kd);
+		glUniform3f(lightPos, L.x, L.y, L.z);
+		glUniform3f(attConst, c.x, c.y, c.z);
+		glUniform3f(lightDirection, 0.0, -0.3, 0.0);
 
 		////Specular Light
-		//glUniform1f(specularReflexion, Ke);
+		glUniform1f(specularReflexion, Ke);
 		glUniform1i(roughIndex, n);
 		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
 
@@ -686,7 +687,7 @@ int main() {
 #endif
 
 		//glBindVertexArray(0);
-
+		//glEnable(GL_FRAMEBUFFER_SRGB);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
