@@ -50,7 +50,7 @@ vec3 lightPositionBuffer[4];
 
 //Object declaration
 FigureType fig;
-vec3 cubePosition(0.0, -1.75, 0.0);
+vec3 cubePosition(-1.0, -6, 0.0);
 vec3 cubeRotation(0.f);
 vec3 cubeScale(10.0f);
 
@@ -65,8 +65,8 @@ Object lightCube(lightCubeScale, lightRotation, lightPosition, fig);
 //LIGHT PROPERTIES
 //PHONG
 //Ambiental illumination
-GLfloat Ia = 1;	//Ambiental intensity
-GLfloat Ka = 1;	//Ambiental reflexion coeficient
+GLfloat Ia = 0.1;	//Ambiental intensity
+GLfloat Ka = 0.1;	//Ambiental reflexion coeficient
 
 //Difuse illumination
 GLfloat Ii = 1;	//Source intensity
@@ -82,8 +82,8 @@ GLint n = 100;		//Roughness index
 Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 0, 0);
 Light lPoint1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 0);
 Light lPoint2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 1);
-Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 2, 0);
-Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 2, 1);
+Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 0);
+Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 1);
 
 //Extra Lamps
 
@@ -92,7 +92,9 @@ Object lightPoint2(lightCubeScale, lightRotation, vec3(0.0), fig);
 Object lightSpot1(lightCubeScale, lightRotation, vec3(0.0), fig);
 Object lightSpot2(lightCubeScale, lightRotation, vec3(0.0), fig);
 
-
+//Gamma correction values
+bool gammaIsOn = false;
+float gammaVal = 1.5;
 
 #pragma endregion
 
@@ -164,6 +166,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_P) {
 		cubito.Move(vec3(0.0, 0.f, -0.1));
 	}
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		gammaIsOn = !gammaIsOn;
+	}
+	if (key == GLFW_KEY_KP_ADD) {
+		gammaVal += 0.1;
+	}
+	if (key == GLFW_KEY_KP_SUBTRACT) {
+		gammaVal -= 0.1;
+	}
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -223,7 +234,7 @@ int main() {
 	//Shader object("./src/lightingVertexShader.txt", "./src/lightingFragmentShader.txt");
 	//Shader object("./src/lightDirectionalVS.txt", "./src/lightDirectionalFS.txt");
 	//Shader object("./src/lightFocalVS.txt", "./src/lightFocalFS.txt");
-	Shader object("./src/VertexShaderPhongTexture.vs", "./src/FragmentShaderPhongTexture.fs");
+	Shader object("./src/gammaCorrectionVS.txt", "./src/gammaCorrectionFS.txt");
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
@@ -445,6 +456,10 @@ int main() {
 	GLint maxAperture = glGetUniformLocation(object.Program, "maxAperture");
 	GLint minAperture = glGetUniformLocation(object.Program, "minAperture");
 
+	//Gamma correction parameters
+	GLint gammaValue = glGetUniformLocation(object.Program, "gammaValue");
+	GLint gammaOn = glGetUniformLocation(object.Program, "gammaOn");
+
 	//ENABLE Z-BUFFER	
 	glEnable(GL_DEPTH_TEST);
 
@@ -620,6 +635,12 @@ int main() {
 		//Focal max Aperture
 		glUniform1f(maxAperture, cos(radians(30.f)));
 		glUniform1f(minAperture, cos(radians(25.f)));
+
+		//Gamma correction values
+		glUniform1f(gammaValue, gammaVal);
+		glUniform1i(gammaOn, gammaIsOn);
+
+
 		//DRAW CUBE
 		cubito.Draw();
 
