@@ -79,18 +79,28 @@ GLfloat Ke = 0.8;	//Specular reflexion coeficient
 GLint n = 100;		//Roughness index
 
 //Light object
-Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(0.0), vec3(0.0), vec3(0.0), (Light::LType) 0, 0);
+Light lDir(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 0, 0);
 Light lPoint1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 0);
 Light lPoint2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 1);
-Light lSpot1(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 0);
-Light lSpot2(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 1);
+Light lPoint3(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 2);
+Light lPoint4(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 1, 3);
+
+//Spot Lights
+Light lSpot1(vec3(-4.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 0);
+Light lSpot2(vec3(-2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 1);
+Light lSpot3(vec3(0.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 2);
+Light lSpot4(vec3(2.0, 1.0, 0.0), vec3(0.0, -0.3, 0.0), vec3(Ia*Ka), vec3(Ii * Kd), vec3(Ii * Ke), (Light::LType) 2, 3);
+
+//Decide which light type is being painted
+bool spotLightBool = false;
+bool directionLightBool = false;
 
 //Extra Lamps
 
 Object lightPoint1(lightCubeScale, lightRotation, vec3(0.0), fig);
 Object lightPoint2(lightCubeScale, lightRotation, vec3(0.0), fig);
-Object lightSpot1(lightCubeScale, lightRotation, vec3(0.0), fig);
-Object lightSpot2(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightPoint3(lightCubeScale, lightRotation, vec3(0.0), fig);
+Object lightPoint4(lightCubeScale, lightRotation, vec3(0.0), fig);
 
 //Gamma correction values
 bool gammaIsOn = false;
@@ -174,6 +184,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	if (key == GLFW_KEY_KP_SUBTRACT) {
 		gammaVal -= 0.1;
+	}
+	if (key == GLFW_KEY_KP_MULTIPLY && action == GLFW_PRESS) {
+		spotLightBool = !spotLightBool;
+		directionLightBool = false;
+	}
+	if (key == GLFW_KEY_KP_DIVIDE && action == GLFW_PRESS) {
+		directionLightBool = !directionLightBool;
+		spotLightBool = false;
 	}
 }
 
@@ -455,6 +473,10 @@ int main() {
 	//Focal light parameters
 	GLint maxAperture = glGetUniformLocation(object.Program, "maxAperture");
 	GLint minAperture = glGetUniformLocation(object.Program, "minAperture");
+	GLint spotLightBoolean = glGetUniformLocation(object.Program, "SpotLightBool");
+
+	//Directional light bool
+	GLint directionLightBoolean = glGetUniformLocation(object.Program, "DirectionLightBool");
 
 	//Gamma correction parameters
 	GLint gammaValue = glGetUniformLocation(object.Program, "gammaValue");
@@ -468,18 +490,18 @@ int main() {
 
 	lightPositionBuffer[0] = lPoint1.GetPosition();
 	lightPositionBuffer[1] = lPoint2.GetPosition();
-	lightPositionBuffer[2] = lSpot1.GetPosition();
-	lightPositionBuffer[3] = lSpot2.GetPosition();
+	lightPositionBuffer[2] = lPoint3.GetPosition();
+	lightPositionBuffer[3] = lPoint4.GetPosition();
 
 	lightPoint1.Start();
 	lightPoint2.Start();
-	lightSpot1.Start();
-	lightSpot2.Start();
+	lightPoint3.Start();
+	lightPoint4.Start();
 
 	lightPoint1.Move(lightPositionBuffer[0]);
 	lightPoint2.Move(lightPositionBuffer[1]);
-	lightSpot1.Move(lightPositionBuffer[2]);
-	lightSpot2.Move(lightPositionBuffer[3]);
+	lightPoint3.Move(lightPositionBuffer[2]);
+	lightPoint4.Move(lightPositionBuffer[3]);
 
 	material.ActivateTextures();
 	cubito.Start();
@@ -595,20 +617,38 @@ int main() {
 
 		lPoint1.SetAtt(c.x, c.y, c.z);
 		lPoint2.SetAtt(c.x, c.y, c.z);
+		lPoint3.SetAtt(c.x, c.y, c.z);
+		lPoint4.SetAtt(c.x, c.y, c.z);
+
 		lSpot1.SetAtt(c.x, c.y, c.z);
 		lSpot2.SetAtt(c.x, c.y, c.z);
+		lSpot3.SetAtt(c.x, c.y, c.z);
+		lSpot4.SetAtt(c.x, c.y, c.z);
 
-		lPoint1.SetColor(vec3(0.0, 0.0, 1.0));
+		lPoint1.SetColor(vec3(1.0, 0.0, 0.0));
+		lPoint2.SetColor(vec3(0.0, 1.0, 0.0));
+		lPoint3.SetColor(vec3(0.0, 0.0, 1.0));
+		lPoint4.SetColor(vec3(1.0, 1.0, 1.0));
 
 		lPoint1.SetLight(&object, cameraPos);
 		lPoint2.SetLight(&object, cameraPos);
+		lPoint3.SetLight(&object, cameraPos);
+		lPoint4.SetLight(&object, cameraPos);
+
+		lSpot1.SetColor(vec3(1.0, 0.0, 0.0));
+		lSpot2.SetColor(vec3(0.0, 1.0, 0.0));
+		lSpot3.SetColor(vec3(0.0, 0.0, 1.0));
+		lSpot4.SetColor(vec3(1.0, 1.0, 1.0));
 
 		lSpot1.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
 		lSpot2.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
-		lSpot1.SetColor(vec3(0.0, 1.0, 0.0));
+		lSpot3.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
+		lSpot4.SetAperture(cos(radians(25.f)), cos(radians(30.f)));
 
 		lSpot1.SetLight(&object, cameraPos);
 		lSpot2.SetLight(&object, cameraPos);
+		lSpot3.SetLight(&object, cameraPos);
+		lSpot4.SetLight(&object, cameraPos);
 
 
 		//glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
@@ -631,10 +671,14 @@ int main() {
 		glUniform1f(specularReflexion, Ke);
 		glUniform1i(roughIndex, n);
 		glUniform3f(viewerPos, mainCam.GetPosition().x, mainCam.GetPosition().y, mainCam.GetPosition().z);
+		
 
 		//Focal max Aperture
-		glUniform1f(maxAperture, cos(radians(30.f)));
-		glUniform1f(minAperture, cos(radians(25.f)));
+		/*glUniform1f(maxAperture, cos(radians(30.f)));
+		glUniform1f(minAperture, cos(radians(25.f)));*/
+		glUniform1i(spotLightBoolean, spotLightBool);
+
+		glUniform1i(directionLightBoolean, directionLightBool);
 
 		//Gamma correction values
 		glUniform1f(gammaValue, gammaVal);
@@ -658,10 +702,10 @@ int main() {
 		lightPoint1.Draw();
 		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint2.GetModelMatrix()));
 		lightPoint2.Draw();
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightSpot1.GetModelMatrix()));
-		lightSpot1.Draw();
-		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightSpot2.GetModelMatrix()));
-		lightSpot2.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint3.GetModelMatrix()));
+		lightPoint3.Draw();
+		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint4.GetModelMatrix()));
+		lightPoint4.Draw();
 
 
 #if(false)

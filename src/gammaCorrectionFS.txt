@@ -59,19 +59,30 @@ uniform SLight slight[NUM_MAX_SLIGHTS];
 
 uniform float gammaValue;
 uniform bool gammaOn;
+uniform bool SpotLightBool;
+uniform bool DirectionLightBool;
 
 vec3 DirectionalLight(DLight light, vec3 Normal, vec3 viewPosition);
 vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition);
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition);
 
 void main(){
-	vec3 color; //= texture(material.diffuse, texCoords).rgb;
+	vec3 color;
 	vec3 totalLight;
-	vec3 pLight1 = PointLight(plight[0], normalVec, viewPos), pLight2 = PointLight(plight[1], normalVec, viewPos);
-	vec3 sLight1 = SpotLight(slight[0], normalVec, viewPos), sLight2 = SpotLight(slight[1], normalVec, viewPos);
+	vec3 pLight1 = PointLight(plight[0], normalVec, viewPos), pLight2 = PointLight(plight[1], normalVec, viewPos), pLight3 = PointLight(plight[2], normalVec, viewPos), pLight4 = PointLight(plight[3], normalVec, viewPos);
+	vec3 sLight1 = SpotLight(slight[0], normalVec, viewPos), sLight2 = SpotLight(slight[1], normalVec, viewPos), sLight3 = SpotLight(slight[2], normalVec, viewPos), sLight4 = SpotLight(slight[3], normalVec, viewPos);
 	vec3 dLight1 = DirectionalLight(dlight, normalVec, viewPos);
+
 	//Output color
-	totalLight = (pLight1 + pLight2 + sLight1 + sLight2 + dLight1);
+	if(SpotLightBool){
+		totalLight = (sLight1 + sLight2 + sLight3 + sLight4);
+	}
+	else if(DirectionLightBool){
+		totalLight = dLight1;
+	}
+	else
+		totalLight = (pLight1 + pLight2 + pLight3 + pLight4);
+
 	color = totalLight;
 
 	if(gammaOn){
@@ -83,7 +94,22 @@ void main(){
 } 
 
 vec3 DirectionalLight(DLight light, vec3 Normal, vec3 viewPosition){
-	return vec3(0.0);
+	//Ambient
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse, texCoords));
+  	
+    //Diffuse 
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(-light.direction);  
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, texCoords));  
+    
+    //Specular
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), n);
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, texCoords));
+            
+    return ambient + diffuse + specular;
 }
 
 vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
@@ -92,7 +118,7 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
 	vec3 normal = normalize(Normal);
 
 	//Ambiental
-	vec3 ambiental; //= light.ambient *  vec3(texture(material.diffuse, texCoords)).rgb * light.color;
+	vec3 ambiental = light.ambient *  vec3(texture(material.diffuse, texCoords)).rgb * light.color;
 
 	//Diffuse
 	vec3 lightDir = normalize(light.position - fragPos);
@@ -112,7 +138,41 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewPosition){
 }
 
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewPosition){
+
+	//Attenuation
 	float distance = length(light.position - fragPos);
 	float attenuation = 1/distance;
-	return vec3(0.0);
+
+	//Ambient
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, texCoords)).rgb * light.color;
+	
+	//Diffuse
+	vec3 normal = normalize(Normal);
+	vec3 lightDir = normalize(light.position - fragPos);
+	float diff = max(dot(normal, lightDir), 0.0);
+	vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, texCoords)).rgb * light.color;
+
+	//Specular
+	vec3 viewDir = normalize(viewPosition - fragPos);
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), n);
+	vec3 specular = light.specular * spec * vec3(texture(material.specular, texCoords)).rgb * light.color;
+
+	//SpotLight
+	float theta = dot(lightDir, normalize(-light.direction));
+	float epsilon = (light.minAperture - light.maxAperture);
+	float intensity = clamp((theta - light.maxAperture) / epsilon, 0.0, 1.0);
+	diffuse *= intensity;
+	specular *= intensity;
+
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+
+	if(theta > light.maxAperture){
+		return ambient + diffuse + specular;
+	}
+	else return ambient;
+	
+
 }
