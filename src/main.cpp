@@ -106,6 +106,9 @@ Object lightPoint4(lightCubeScale, lightRotation, vec3(0.0), fig);
 bool gammaIsOn = false;
 float gammaVal = 1.5;
 
+//ModelDrawBool
+bool drawModel = false;
+
 #pragma endregion
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -193,6 +196,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		directionLightBool = !directionLightBool;
 		spotLightBool = false;
 	}
+	if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+		drawModel = !drawModel;
+	}
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -256,10 +262,7 @@ int main() {
 	Shader light("./src/lilCubeVS.txt", "./src/lilCubeFS.txt");
 
 	//3D MODEL LOADING
-	//Model firstModel("./src/3DModel/spider.obj");
-	//Model secondModel("./src/3DModel/nanosuit2.obj");
-	//Model secondModel("./src/3DModel/wusonOBJ.obj");
-	//Model secondModel("./src/3DModel/");
+	Model firstModel("./src/3DModel/spider.obj");
 
 //OWN VBO, VAO, EBO
 #if(false)
@@ -593,7 +596,7 @@ int main() {
 		//PROJECTION MATRIX
 		mat4 proj = perspective(radians(mainCam.GetFOV()), float(screenWidth) / float(screenHeight), 1.0f, 100.0f);
 		glUniformMatrix4fv(projection, 1, GL_FALSE, value_ptr(proj));
-		
+
 
 		//VIEW MATRIX
 		mat4 view = mainCam.LookAt();
@@ -603,15 +606,27 @@ int main() {
 		//view = lookAt(cameraPos, direction, vec3(0.0f, 1.f, 0.f));
 		glUniformMatrix4fv(view3D, 1, GL_FALSE, value_ptr(view));
 		
+		
 
 		//MODEL TRANSFORMATION MATRIX
-		//transformationMat = translationMat * rotationMat * scalationMat;
-		mat4 model;
-		//model = translate(model, vec3(0.0, -1.75, 0.0));
-		//model = scale(model, vec3(2.0, 2.0, 2.0));
-		//glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
 
-		glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
+		mat4 model;
+
+
+
+		//DRAW CUBE
+		if (!drawModel) {
+			glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(cubito.GetModelMatrix()));
+		}
+
+
+		if (drawModel) {
+
+			model = translate(model, vec3(0.0, -3.0, 0.0));
+			model = scale(model, vec3(0.05));
+			glUniformMatrix4fv(model3D, 1, GL_FALSE, value_ptr(model));
+
+		}
 		
 		lDir.SetLight(&object, cameraPos);
 
@@ -650,6 +665,16 @@ int main() {
 		lSpot3.SetLight(&object, cameraPos);
 		lSpot4.SetLight(&object, cameraPos);
 
+		if (!drawModel) {
+			cubito.Draw();
+		}
+
+
+		if (drawModel) {
+
+			firstModel.Draw(object, GL_FILL);
+		}
+
 
 		//glUniform3f(objectColor, 1.f, 0.4f, 0.23f);
 		glUniform3f(lightColor, 1.0f, 1.f, 1.0f);
@@ -684,10 +709,6 @@ int main() {
 		glUniform1f(gammaValue, gammaVal);
 		glUniform1i(gammaOn, gammaIsOn);
 
-
-		//DRAW CUBE
-		cubito.Draw();
-
 		//LIGHT CUBE SHADER DATA
 		light.USE();
 
@@ -706,6 +727,15 @@ int main() {
 		lightPoint3.Draw();
 		glUniformMatrix4fv(glGetUniformLocation(light.Program, "model"), 1, GL_FALSE, value_ptr(lightPoint4.GetModelMatrix()));
 		lightPoint4.Draw();
+			
+		
+		
+
+		
+		
+
+		
+
 
 
 #if(false)
